@@ -1,0 +1,185 @@
+{
+	"name": "codeTemplateHub",
+	"displayName": "Code Template Hub",
+	"description": "Create files from git-based templates using dot.js templating. Store templates in repositories, manage them in a tree view, and generate files with powerful templating features. Supports version-controlled templates with dynamic content, parameter inputs, and author information for team collaboration.",
+	"version": "0.1.0",
+	"engines": {
+		"vscode": "^1.99.0"
+	},
+	"categories": [
+		"Snippets",
+		"Other",
+		"Programming Languages"
+	],
+	"activationEvents": [
+		"onStartupFinished",
+		"onCommand:codeTemplateHub.createFromTemplate",
+		"onCommand:codeTemplateHub.refreshTemplates",
+		"onCommand:codeTemplateHub.showDiagnostics",
+		"onCommand:codeTemplateHub.configureAuthorInfo"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "codeTemplateHub.createFromTemplate",
+				"title": "Create Files from Template",
+				"category": "Template Hub"
+			},
+			{
+				"command": "codeTemplateHub.refreshTemplates",
+				"title": "Refresh Templates",
+				"category": "Template Hub"
+			},
+			{
+				"command": "codeTemplateHub.showDiagnostics",
+				"title": "Show Template Diagnostics",
+				"category": "Template Hub"
+			},
+			{
+				"command": "codeTemplateHub.configureAuthorInfo",
+				"title": "Configure Author Information",
+				"category": "Template Hub"
+			}
+		],
+		"menus": {
+			"explorer/context": [
+				{
+					"command": "codeTemplateHub.createFromTemplate",
+					"group": "templateHub@1"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "codeTemplateHub.createFromTemplate",
+					"group": "templateHub@1"
+				}
+			],
+			"view/title": [
+				{
+					"command": "codeTemplateHub.configureAuthorInfo",
+					"when": "view == codeTemplateHubExplorer",
+					"group": "navigation"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "codeTemplateHub.createFromTemplate"
+				},
+				{
+					"command": "codeTemplateHub.refreshTemplates"
+				},
+				{
+					"command": "codeTemplateHub.showDiagnostics"
+				},
+				{
+					"command": "codeTemplateHub.configureAuthorInfo"
+				}
+			]
+		},
+		"configuration": {
+			"title": "Code Template Hub",
+			"properties": {
+				"codeTemplateHub.repositories": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"url": {
+								"type": "string",
+								"description": "Git repository URL"
+							},
+							"branch": {
+								"type": "string",
+								"description": "Branch to use (default: main)"
+							},
+							"name": {
+								"type": "string",
+								"description": "Display name for the repository (optional)"
+							},
+							"token": {
+								"type": "string",
+								"description": "Authentication token for private repositories (optional)"
+							}
+						},
+						"required": [
+							"url"
+						]
+					},
+					"default": [],
+					"description": "List of git repositories containing templates"
+				},
+				"codeTemplateHub.tokens": {
+					"type": "object",
+					"additionalProperties": {
+						"type": "string"
+					},
+					"default": {},
+					"description": "Access tokens for private repositories (keys are repository IDs)"
+				},
+				"codeTemplateHub.author.firstName": {
+					"type": "string",
+					"default": "",
+					"description": "Your first name for use in templates"
+				},
+				"codeTemplateHub.author.lastName": {
+					"type": "string",
+					"default": "",
+					"description": "Your last name for use in templates"
+				},
+				"codeTemplateHub.author.email": {
+					"type": "string",
+					"default": "",
+					"description": "Your email for use in templates"
+				}
+			}
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "codeTemplateHubPanel",
+					"title": "Code Template Hub",
+					"icon": "$(file-code)"
+				}
+			]
+		},
+		"views": {
+			"codeTemplateHubPanel": [
+				{
+					"id": "codeTemplateHubExplorer",
+					"name": "Templates",
+					"icon": "$(template)",
+					"contextualTitle": "File Templates"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run package",
+		"compile": "webpack",
+		"watch": "webpack --watch",
+		"package": "webpack --mode production --devtool hidden-source-map",
+		"compile-tests": "tsc -p . --outDir out",
+		"watch-tests": "tsc -p . -w --outDir out",
+		"pretest": "npm run compile-tests && npm run compile && npm run lint",
+		"lint": "eslint src",
+		"test": "vscode-test"
+	},
+	"devDependencies": {
+		"@types/dot": "^1.1.7",
+		"@types/mocha": "^10.0.10",
+		"@types/node": "20.x",
+		"@types/vscode": "^1.99.0",
+		"@typescript-eslint/eslint-plugin": "^8.31.1",
+		"@typescript-eslint/parser": "^8.31.1",
+		"@vscode/test-cli": "^0.0.10",
+		"@vscode/test-electron": "^2.5.2",
+		"dot": "^1.1.3",
+		"eslint": "^9.25.1",
+		"simple-git": "^3.27.0",
+		"ts-loader": "^9.5.2",
+		"typescript": "^5.8.3",
+		"webpack": "^5.99.7",
+		"webpack-cli": "^6.0.1"
+	}
+}

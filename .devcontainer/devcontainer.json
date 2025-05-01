@@ -1,0 +1,17 @@
+// See https://containers.dev/implementors/json_reference/ for configuration reference
+{
+	"name": "Untitled Node.js project",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"amodio.tsl-problem-matcher",
+				"ms-vscode.extension-test-runner",
+				"dbaeumer.vscode-eslint"
+			]
+		}
+	},
+	"remoteUser": "node"
+}
