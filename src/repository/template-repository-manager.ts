@@ -23,7 +23,7 @@ export class TemplateRepositoryManager
 	 * @param context Extension context
 	 */
 	constructor(private context: vscode.ExtensionContext) {
-		this.storageUri = vscode.Uri.joinPath(context.globalStorageUri, 'templates');
+		this.storageUri = vscode.Uri.joinPath(this.mirrorToRealFileUri(context.globalStorageUri), 'templates');
 		this.statusBarItem = vscode.window.createStatusBarItem(
 			vscode.StatusBarAlignment.Left
 		);
@@ -176,6 +176,26 @@ export class TemplateRepositoryManager
 
 		await Promise.allSettled(promises);
 		this.statusBarItem.text = "$(repo) Template Hub";
+	}
+
+	/**
+	 * Converts a VS Code virtual URI (like vscode-userdata:) into a usable file URI,
+	 * assuming the underlying path is absolute and exists on the local file system.
+	 */
+	private mirrorToRealFileUri(vscodeUri: vscode.Uri): vscode.Uri {
+		if (vscodeUri.scheme === 'file') {
+			return vscodeUri; // Already usable
+		}
+
+		// Attempt to interpret the path portion as a real absolute file system path
+		let absPath = vscodeUri.fsPath;
+
+		// Handle edge cases on Windows where path may include a leading slash (e.g. /C:/...)
+		if (process.platform === 'win32' && absPath.startsWith('/')) {
+			absPath = absPath.slice(1);
+		}
+
+		return vscode.Uri.file(absPath);
 	}
 
 	/**

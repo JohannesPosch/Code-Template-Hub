@@ -4,6 +4,7 @@
 	"description": "Create files from git-based templates using dot.js templating. Store templates in repositories, manage them in a tree view, and generate files with powerful templating features. Supports version-controlled templates with dynamic content, parameter inputs, and author information for team collaboration.",
 	"version": "0.1.0",
 	"icon": "icon.png",
+	"publisher": "JohnnyP",
 	"repository":
 	{
 		"type": "git",
@@ -112,30 +113,27 @@
 							"url"
 						]
 					},
-					"default": [],
+					"default": [
+						{
+							"url": "https://github.com/JohannesPosch/templates.git",
+							"name": "Code Template Hub"
+						}
+					],
 					"description": "List of git repositories containing templates"
-				},
-				"codeTemplateHub.tokens": {
-					"type": "object",
-					"additionalProperties": {
-						"type": "string"
-					},
-					"default": {},
-					"description": "Access tokens for private repositories (keys are repository IDs)"
 				},
 				"codeTemplateHub.author.firstName": {
 					"type": "string",
-					"default": "",
+					"default": "John",
 					"description": "Your first name for use in templates"
 				},
 				"codeTemplateHub.author.lastName": {
 					"type": "string",
-					"default": "",
+					"default": "Doe",
 					"description": "Your last name for use in templates"
 				},
 				"codeTemplateHub.author.email": {
 					"type": "string",
-					"default": "",
+					"default": "John@doe.com",
 					"description": "Your email for use in templates"
 				}
 			}
