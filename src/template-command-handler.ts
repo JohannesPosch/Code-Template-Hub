@@ -127,7 +127,11 @@ export class TemplateCommandHandler {
 			const createdFiles = await this.templateRenderer.renderTemplate(
 				selectedTemplate,
 				targetDir,
-				params
+				params,
+				{
+					workspaceDir: (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined,
+					executionDir: targetDir
+				}
 			);
 
 			// Show success message

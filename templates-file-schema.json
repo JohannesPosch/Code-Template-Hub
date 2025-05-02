@@ -50,6 +50,21 @@
 					"items": {
 						"$ref": "#/definitions/parameter"
 					}
+				},
+				"variables": {
+					"type": "array",
+					"description": "Custom variables computed from parameters",
+					"items": {
+						"$ref": "#/definitions/customVariable"
+					}
+				},
+				"variablesScript": {
+					"type": "string",
+					"description": "Path to a JavaScript file that generates custom variables"
+				},
+				"variablesFunction": {
+					"type": "string",
+					"description": "Name of the function to call in the variables script (default: 'generateVariables')"
 				}
 			}
 		},
@@ -160,6 +175,30 @@
 					}
 				}
 			]
+		},
+		"customVariable": {
+			"type": "object",
+			"required": ["name", "value"],
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": "Name of the variable"
+				},
+				"description": {
+					"type": "string",
+					"description": "Description of the variable"
+				},
+				"value": {
+					"type": "string",
+					"description": "JavaScript expression or dot.js template"
+				},
+				"type": {
+					"type": "string",
+					"enum": ["js", "dotjs"],
+					"default": "js",
+					"description": "Type of evaluation"
+				}
+			}
 		}
 	}
 }

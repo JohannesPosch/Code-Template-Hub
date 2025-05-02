@@ -8,6 +8,7 @@ Code Template Hub is a powerful VS Code extension that helps you quickly create 
 - **Flexible templating**: Use dot.js templating syntax for powerful and flexible templates
 - **Template Explorer**: Browse templates in a structured tree view
 - **Customizable parameters**: Define parameters for your templates to collect user input with validation
+- **Custom variables**: Generate advanced variables based on input parameters using dot.js expressions or JavaScript functions
 - **Automatic cleanup**: Repositories are automatically cleaned up when removed from configuration
 - **Author Information**: Include developer attribution in generated files
 - **Multi-Repository Support**: Organize templates across multiple repositories
@@ -81,6 +82,14 @@ Or manually configure in settings:
 "codeTemplateHub.author.email": "john.doe@example.com"
 ```
 
+### Organization Information
+
+You can also configure organization information for use in templates:
+
+```json
+"codeTemplateHub.organization.name": "Acme Corporation"
+```
+
 ## Using Templates
 
 ### Creating Files from Templates
@@ -108,12 +117,16 @@ A template repository should contain:
 
 1. A `templates.json` file in the root directory
 2. Template files referenced in the configuration
+3. Optional JavaScript files for advanced variable generation
 
 Example repository structure:
 
 ```
 /
 ├── templates.json
+├── scripts/
+│   ├── react-variables.js
+│   └── api-variables.js
 ├── templates/
 │   ├── react/
 │   │   ├── component.dot.js
@@ -150,6 +163,26 @@ The `templates.json` file defines all available templates:
           "destination": "{{= data.name }}/index.ts"
         }
       ],
+      "variables": [
+        {
+          "name": "componentPath",
+          "description": "Path adjusted based on component type",
+          "value": "data.componentType === 'page' ? 'pages' : 'components'",
+          "type": "js"
+        },
+        {
+          "name": "className",
+          "description": "CSS class name derived from component name",
+          "value": "utils.toKebabCase(data.name)",
+          "type": "js"
+        },
+        {
+          "name": "importStatement",
+          "description": "Import statement based on settings",
+          "value": "import React{{? data.useHooks }}, { useState, useEffect }{{?}} from 'react';",
+          "type": "dotjs"
+        }
+      ],
       "parameters": [
         {
           "name": "name",
@@ -180,6 +213,33 @@ The `templates.json` file defines all available templates:
           ]
         }
       ]
+    },
+    {
+      "name": "Express API Endpoint",
+      "description": "Create an Express API endpoint with models and tests",
+      "icon": "server",
+      "category": "Backend",
+      "variablesScript": "scripts/api-variables.js",
+      "parameters": [
+        {
+          "name": "entityName",
+          "displayName": "Entity Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "methods",
+          "displayName": "API Methods",
+          "type": "selection",
+          "options": [
+            {"value": "get", "label": "GET"},
+            {"value": "post", "label": "POST"},
+            {"value": "put", "label": "PUT"},
+            {"value": "delete", "label": "DELETE"}
+          ],
+          "default": "get"
+        }
+      ]
     }
   ]
 }
@@ -195,6 +255,9 @@ Template properties:
 | `category` | Category for grouping templates | No |
 | `files` | Array of files to create | Yes |
 | `parameters` | Array of parameters to collect from user | No |
+| `variables` | Array of custom variables computed from parameters | No |
+| `variablesScript` | Path to a JavaScript file that generates custom variables | No |
+| `variablesFunction` | Name of the function to call in the variables script (default: 'generateVariables') | No |
 
 File properties:
 
@@ -218,9 +281,220 @@ Parameter properties:
 | `patternErrorMessage` | Error message for invalid pattern | No |
 | `options` | Options for selection type (array of {value, label} objects) | For selection type |
 
+Custom Variable properties:
+
+| Property | Description | Required |
+|----------|-------------|----------|
+| `name` | Name of the variable | Yes |
+| `description` | Description of the variable | No |
+| `value` | JavaScript expression or dot.js template | Yes |
+| `type` | Type of evaluation: 'js' or 'dotjs' (default: 'js') | No |
+
+## Advanced Features
+
+### Custom Variables
+
+Code Template Hub supports two powerful methods for generating custom variables:
+
+#### 1. Inline Variable Definitions
+
+You can define custom variables directly in the `templates.json` file:
+
+```json
+"variables": [
+  {
+    "name": "className",
+    "description": "CSS class name derived from component name",
+    "value": "utils.toKebabCase(data.name)",
+    "type": "js"
+  },
+  {
+    "name": "importStatement",
+    "description": "Import statement based on settings",
+    "value": "import React{{? data.useHooks }}, { useState, useEffect }{{?}} from 'react';",
+    "type": "dotjs"
+  }
+]
+```
+
+Each variable can use one of two evaluation types:
+
+- **JavaScript (`js`)**: Evaluates a JavaScript expression with access to parameters and utility functions
+- **dot.js (`dotjs`)**: Processes a dot.js template with access to all parameters and previously defined variables
+
+#### 2. Script-Based Variables
+
+For more complex variable generation, you can use a dedicated JavaScript file:
+
+```json
+"variablesScript": "scripts/api-variables.js",
+"variablesFunction": "generateVariables"  // Optional, defaults to "generateVariables"
+```
+
+The script should export a function (matching the name in `variablesFunction` or defaulting to `generateVariables`) that receives parameters and context information and returns an object with string keys:
+
+```javascript
+/**
+ * Generate variables for Express API Endpoint templates
+ *
+ * @param {Object} params - User parameters
+ * @param {Object} context - Additional context
+ * @returns {Object.<string, any>} - Dictionary with string keys and any value types
+ */
+exports.generateVariables = async function(params, context) {
+  const { entityName, methods } = params;
+  const { utils, workspaceDir, executionDir, templateDir } = context;
+
+  // Transform entity name for different uses
+  const entityNameCamel = utils.toCamelCase(entityName);
+  const entityNamePascal = utils.toPascalCase(entityName);
+  const entityNameSnake = utils.toSnakeCase(entityName);
+  const entityNamePlural = entityNameCamel + 's'; // Simple pluralization
+
+  // Return dictionary with string keys and various value types
+  return {
+    // String values
+    "entityNameCamel": entityNameCamel,
+    "entityNamePascal": entityNamePascal,
+    "entityNameSnake": entityNameSnake,
+    "entityNamePlural": entityNamePlural,
+
+    // Boolean value
+    "isPlural": entityName.endsWith('s'),
+
+    // Array value
+    "methods": methods.split(','),
+
+    // Object value
+    "paths": {
+      "controller": `controllers/${entityNameSnake}_controller.js`,
+      "model": `models/${entityNamePascal}.js`,
+      "route": `routes/${entityNameSnake}_routes.js`
+    },
+
+    // Function value (will be stringified)
+    "getMethodName": function(operation) {
+      return `${operation}${entityNamePascal}`;
+    }
+  };
+};
+```
+
+#### Variable Data and Context Reference
+
+The following table describes all data available to both inline variables and script functions:
+
+| Variable Source | Inline JS (`type: "js"`) | Inline dot.js (`type: "dotjs"`) | Script Function |
+|-----------------|--------------------------|--------------------------------|----------------|
+| **User Parameters** | `data.paramName` | `{{= data.paramName }}` | `params.paramName` |
+| **Author Info** | `data.author.firstName`<br>`data.author.lastName`<br>`data.author.email`<br>`data.author.fullName` | `{{= data.author.firstName }}`<br>`{{= data.author.lastName }}`<br>`{{= data.author.email }}`<br>`{{= data.author.fullName }}` | `params.author.firstName`<br>`params.author.lastName`<br>`params.author.email`<br>`params.author.fullName` |
+| **Organization Info** | `data.organization.name` | `{{= data.organization.name }}` | `params.organization.name` |
+| **Date** | `data.date` (JavaScript Date object) | `{{= data.date }}` (JavaScript Date object) | `params.date` (JavaScript Date object) |
+| **Utilities** | `utils.functionName()` | N/A (use in JS variables) | `context.utils.functionName()` |
+| **Workspace Info** | `workspaceDir` | N/A (use in JS variables) | `context.workspaceDir` |
+| **Execution Directory** | `executionDir` | N/A (use in JS variables) | `context.executionDir` |
+| **Template Directory** | N/A | N/A | `context.templateDir` |
+| **Previously Defined Variables** | All prior variables in the variables array | All prior variables in the variables array | N/A (all processed at once) |
+
+#### Script Function Interface
+
+The function in the variables script should implement this interface:
+
+```typescript
+/**
+ * Generate custom variables for template
+ *
+ * @param params - All user parameters and built-in variables
+ * @param context - Additional context information
+ * @returns Dictionary with string keys and any values
+ */
+function generateVariables(
+  params: Record<string, any>,
+  context: {
+    utils: UtilityFunctions;
+    workspaceDir?: string;
+    executionDir: string;
+    templateDir: string;
+  }
+): Record<string, any> | Promise<Record<string, any>>;
+```
+
+The function:
+- Can be synchronous or asynchronous (returning a Promise)
+- Must return an object with string keys
+- Values can be of any type (string, number, boolean, array, object, etc.)
+- Has access to all parameters and built-in context
+
+#### Process Flow Diagram
+
+The following diagram illustrates the template processing workflow:
+
+
+#### Available Utility Functions
+
+Both inline and script-based variables have access to these utility functions:
+
+```javascript
+utils = {
+  // String transformations
+  toCamelCase: (str) => str.replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase()),
+  toPascalCase: (str) => str.replace(/^([a-z])|-([a-z])/g, (g) => g.replace(/^-/, '').toUpperCase()),
+  toSnakeCase: (str) => str.replace(/([A-Z])/g, (g) => '_' + g.toLowerCase()).replace(/^_/, ''),
+  toKebabCase: (str) => str.replace(/([A-Z])/g, (g) => '-' + g.toLowerCase()).replace(/^-/, ''),
+
+  // File path utilities
+  joinPath: (...parts) => path.join(...parts),
+  resolvePath: (p) => path.resolve(p),
+  getBasename: (p, ext) => path.basename(p, ext),
+  getDirname: (p) => path.dirname(p),
+  getExtname: (p) => path.extname(p),
+
+  // Date formatting
+  formatDate: (date, format) => {
+    // Formats date according to pattern (yyyy, MM, dd, etc.)
+  },
+
+  // ID generation
+  generateUUID: () => {
+    // Generates a v4 UUID
+  }
+}
+```
+
+### Template Destination Paths
+
+The extension uses dot.js templating syntax for destination paths. The extension processes the destination path with the same templating engine used for file contents:
+
+```json
+"destination": "{{= data.category ? data.category + '/' : '' }}{{= data.name.toLowerCase() }}/index.ts"
+```
+
+This allows for conditional paths, transformations, and complex logic when determining where files should be created.
+
+> **Note**: The `${name}` syntax is not supported for destination paths. Always use the dot.js syntax with `{{= ... }}`.
+
+### Working with Parameter Values in Paths
+
+You can access parameter properties in destination paths using dot.js syntax:
+
+```json
+"destination": "{{= data.name }}/{{= data.author.lastName }}-{{= data.name }}.tsx"
+```
+
+The dot.js approach gives you flexibility for transformations:
+```json
+"destination": "{{= data.name }}/{{= data.name.toLowerCase().replace(/[^a-z0-9]/g, '-') }}.ts"
+```
+
+You can also use custom variables in destination paths:
+
+```json
+"destination": "{{= data.componentPath }}/{{= data.kebabName }}.{{= data.extension }}"
+```
+
 ### Template File Syntax
 
-Template files use the [dot.js syntax](https://olado.github.io/doT/index.html). Parameters are accessible via the `data` object:
+Template files use the [dot.js syntax](https://olado.github.io/doT/index.html). Parameters and variables are accessible via the `data` object:
 
 ```javascript
 /**
@@ -231,10 +505,7 @@ Template files use the [dot.js syntax](https://olado.github.io/doT/index.html). 
  * @created {{=data.date.toLocaleDateString()}}
  */
 
-import React from 'react';
-{{? data.withHooks }}
-import { useState, useEffect } from 'react';
-{{?}}
+{{= data.importStatement }}
 
 const {{=data.name}} = (props) => {
   {{? data.withHooks }}
@@ -249,7 +520,7 @@ const {{=data.name}} = (props) => {
   {{?}}
 
   return (
-    <div>
+    <div className="{{= data.className }}">
       <h1>{{=data.name}} Component</h1>
     </div>
   );
@@ -260,7 +531,7 @@ export default {{=data.name}};
 
 ### Available Template Variables
 
-Apart from user-defined parameters, these built-in variables are available:
+Apart from user-defined parameters and custom variables, these built-in variables are available:
 
 #### Author Information
 
@@ -270,6 +541,12 @@ Apart from user-defined parameters, these built-in variables are available:
 | `data.author.lastName` | Author's last name |
 | `data.author.email` | Author's email address |
 | `data.author.fullName` | Author's full name (first + last) |
+
+#### Organization Information
+
+| Variable | Description |
+|----------|-------------|
+| `data.organization.name` | Organization name |
 
 #### Date Information
 
@@ -286,6 +563,14 @@ const isoDate = {{= data.date.toISOString() }};
 const formattedDate = {{= data.date.toLocaleDateString() }};
 const formattedTime = {{= data.date.toLocaleTimeString() }};
 ```
+
+### Template Syntax Examples
+
+#### Conditional Content
+
+```javascript
+{{? data.includeTests }}
+import
 
 ### Template Syntax Examples
 
@@ -312,147 +597,6 @@ import '@testing-library/jest-dom';
 
 ```javascript
 const componentName = '{{= data.name.toUpperCase() }}';
-```
-
-## Example Templates
-
-### React Component
-
-Template file: `component.dot.js`
-```javascript
-import React from 'react';
-{{? data.withHooks }}
-import { useState, useEffect } from 'react';
-{{?}}
-{{? data.styleType === 'css' }}
-import styles from './{{=data.name}}.module.css';
-{{?}}
-
-/**
- * {{=data.name}} Component
- *
- * @component
- * @author {{=data.author.fullName}} <{{=data.author.email}}>
- * @created {{=data.date.formatted}}
- */
-const {{=data.name}} = (props) => {
-  {{? data.withHooks }}
-  const [state, setState] = useState(null);
-
-  useEffect(() => {
-    // Component mount effect
-    return () => {
-      // Component unmount cleanup
-    };
-  }, []);
-  {{?}}
-
-  return (
-    <div {{? data.styleType === 'css' }}className={styles.container}{{?}}>
-      <h1 {{? data.styleType === 'css' }}className={styles.title}{{?}}>{{=data.name}} Component</h1>
-    </div>
-  );
-};
-
-export default {{=data.name}};
-```
-
-### CSS Module
-
-Template file: `styles.dot.js`
-```css
-/*
- * {{=data.name}} Component Styles
- * @author {{=data.author.fullName}} <{{=data.author.email}}>
- * @created {{=data.date.toLocaleDateString()}}
- */
-
-.container {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-```
-
-### C++ Class
-
-Template file: `class.dot.js`
-```cpp
-/**
- * @file {{=data.name}}.cpp
- * @brief Implementation of the {{=data.name}} class
- * @author {{=data.author.fullName}} <{{=data.author.email}}>
- * @date {{=data.date.toISOString().split('T')[0]}}
- */
-
-#include "{{=data.name}}.h"
-
-{{? data.namespace }}
-namespace {{=data.namespace}} {
-{{?}}
-
-{{=data.name}}::{{=data.name}}() {
-    // Constructor implementation
-}
-
-{{=data.name}}::~{{=data.name}}() {
-    // Destructor implementation
-}
-
-{{? data.namespace }}
-} // namespace {{=data.namespace}}
-{{?}}
-```
-
-### C++ Header
-
-Template file: `header.dot.js`
-```cpp
-/**
- * @file {{=data.name}}.h
- * @brief Declaration of the {{=data.name}} class
- * @author {{=data.author.fullName}} <{{=data.author.email}}>
- * @date {{=data.date.toISOString().split('T')[0]}}
- */
-
-#pragma once
-
-{{? data.namespace }}
-namespace {{=data.namespace}} {
-{{?}}
-
-class {{=data.name}} {
-public:
-    /**
-     * @brief Constructor
-     */
-    {{=data.name}}();
-
-    /**
-     * @brief Destructor
-     */
-    ~{{=data.name}}();
-
-{{? data.includeVirtualDestructor }}
-    /**
-     * @brief Virtual destructor
-     */
-    virtual ~{{=data.name}}();
-{{?}}
-
-private:
-    // Private members
-};
-
-{{? data.namespace }}
-} // namespace {{=data.namespace}}
-{{?}}
 ```
 
 ## Commands
@@ -494,39 +638,12 @@ Run the "Code Template Hub: Show Template Diagnostics" command to see informatio
 2. Ensure all required fields are present
 3. Check paths to template files
 
-## Advanced Features
+#### Custom Variables Errors
 
-### Template Destination Paths
-
-The extension uses dot.js templating syntax for destination paths. The extension processes the destination path with the same templating engine used for file contents:
-
-```json
-"destination": "{{= data.category ? data.category + '/' : '' }}{{= data.name.toLowerCase() }}/index.ts"
-```
-
-This allows for conditional paths, transformations, and complex logic when determining where files should be created.
-
-> **Note**: The `${name}` syntax is not supported for destination paths. Always use the dot.js syntax with `{{= ... }}`.
-
-### Working with Parameter Values in Paths
-
-You can access parameter properties in destination paths using dot.js syntax:
-
-```json
-"destination": "{{= data.name }}/{{= data.author.lastName }}-{{= data.name }}.tsx"
-```
-
-The dot.js approach gives you flexibility for transformations:
-```json
-"destination": "{{= data.name }}/{{= data.name.toLowerCase().replace(/[^a-z0-9]/g, '-') }}.ts"
-```
-
-### Post-Generation Actions
-
-After generating files, the extension:
-
-1. Shows a success message with the number of created files
-2. Opens the first created file automatically
+1. Check for syntax errors in variable expressions or scripts
+2. Ensure variable scripts return objects with string keys
+3. Validate that script paths are correct relative to the repository root
+4. Check that all referenced parameters exist and are spelled correctly
 
 ## Best Practices
 
@@ -542,3 +659,14 @@ After generating files, the extension:
 - Use parameters for customization points
 - Include good documentation comments in generated files
 - Use conditional sections for optional features
+
+### Custom Variables Best Practices
+
+- Use inline variables for simple transformations and conditional logic
+- Use script-based variables for complex logic, file system operations, or API calls
+- Break down complex logic into helper functions for readability
+- Add descriptive comments to script files to explain the variable generation process
+- Use the provided utility functions rather than reimplementing common operations
+- Validate inputs and handle errors gracefully in variable scripts
+- Cache expensive operations when possible
+- Use async/await for asynchronous operations in script-based variables

@@ -31,22 +31,22 @@
 			{
 				"command": "codeTemplateHub.createFromTemplate",
 				"title": "Create Files from Template",
-				"category": "Template Hub"
+				"category": "Code Template Hub"
 			},
 			{
 				"command": "codeTemplateHub.refreshTemplates",
 				"title": "Refresh Templates",
-				"category": "Template Hub"
+				"category": "Code Template Hub"
 			},
 			{
 				"command": "codeTemplateHub.showDiagnostics",
 				"title": "Show Template Diagnostics",
-				"category": "Template Hub"
+				"category": "Code Template Hub"
 			},
 			{
 				"command": "codeTemplateHub.configureAuthorInfo",
 				"title": "Configure Author Information",
-				"category": "Template Hub"
+				"category": "Code Template Hub"
 			}
 		],
 		"menus": {
@@ -135,6 +135,10 @@
 					"type": "string",
 					"default": "John@doe.com",
 					"description": "Your email for use in templates"
+				},
+				"codeTemplateHub.organization.name": {
+					"type": "string",
+					"description": "The name of the organization that you are developing for, for use in templates."
 				}
 			}
 		},

@@ -31,6 +31,15 @@ export interface AuthorInfo
 }
 
 /**
+ * Interface for organization information
+ */
+export interface OrganizationInfo
+{
+	/** The organizations name. */
+	name: string;
+}
+
+/**
  * Class to handle template rendering
  */
 export class TemplateRenderer {
@@ -52,7 +61,11 @@ export class TemplateRenderer {
 	public async renderTemplate(
 		template: Template,
 		targetDir: string,
-		params: TemplateRenderParams
+		params: TemplateRenderParams,
+		context: {
+			workspaceDir?: string;
+			executionDir: string;
+		}
 	): Promise<string[]> {
 		// Ensure template directory exists
 		if (!template.directory) {
@@ -62,13 +75,20 @@ export class TemplateRenderer {
 		// Ensure target directory exists
 		await fs.promises.mkdir(targetDir, { recursive: true });
 
-		// Add author information to parameters
-		const authorInfo = this.getAuthorInfo();
-		const enhancedParams = {
+		// Add author information and date to parameters
+		const baseParams = {
 			...params,
-			author: authorInfo,
+			author: this.getAuthorInfo(),
+			organization: this.getOrganizationInfo(),
 			date: new Date()
 		};
+
+		// Generate custom variables - now we let errors propagate
+		const enhancedParams = await this.generateCustomVariables(
+			template,
+			baseParams,
+			context
+		);
 
 		const createdFiles: string[] = [];
 
@@ -123,6 +143,18 @@ export class TemplateRenderer {
 			lastName,
 			email,
 			fullName
+		};
+	}
+
+	/**
+	 * Get author information from settings
+	 */
+	private getOrganizationInfo(): OrganizationInfo {
+		const config = vscode.workspace.getConfiguration('codeTemplateHub.organization');
+		const name = config.get<string>('name', '');
+
+		return {
+			name
 		};
 	}
 
@@ -268,5 +300,193 @@ export class TemplateRenderer {
 		});
 
 		return result ? result.value : (param.default as string);
+	}
+
+	/**
+	 * Process and generate custom variables for a template
+	 */
+	private async generateCustomVariables(
+		template: Template,
+		params: TemplateRenderParams,
+		context: {
+		workspaceDir?: string;  // Current workspace directory if any
+		executionDir: string;   // Directory where command was executed
+		}
+	): Promise<TemplateRenderParams> {
+		// Start with base parameters
+		let enhancedParams = { ...params };
+
+		// 1. Process script-based variables if specified
+		if (template.variablesScript && template.directory) {
+			const scriptPath = path.join(template.directory, template.variablesScript);
+
+			// Load the script module
+			const scriptModule = await import(scriptPath);
+
+			// Determine function to call
+			const functionName = template.variablesFunction || "generateVariables";
+			const generateFn = scriptModule[functionName];
+
+			if (typeof generateFn === 'function') {
+				// Create utilities object
+				const utils = this.createUtilitiesObject();
+
+				let scriptVariables;
+
+				try	{
+					scriptVariables = await generateFn(params, {
+						utils,
+						workspaceDir: context.workspaceDir,
+						executionDir: context.executionDir,
+						templateDir: template.directory
+					});
+				} catch (error) {
+					throw new Error(`Error executing variables function "${functionName}": ${error}`);
+				}
+
+				// Validate the returned variables
+				if (!scriptVariables || typeof scriptVariables !== 'object' || Array.isArray(scriptVariables)) {
+					throw new Error(
+						`Variables function "${functionName}" did not return an object: ${typeof scriptVariables}`
+						);
+				}
+
+				// Validate all keys are strings and values are non-undefined
+				for (const key in scriptVariables) {
+					if (typeof key !== 'string') {
+						throw new Error(`Variable key from "${functionName}" is not a string: ${key}`);
+					}
+
+					if (scriptVariables[key] === undefined) {
+						throw new Error(`Variable "${key}" from "${functionName}" has undefined value`);
+					}
+				}
+
+				// Merge script variables into parameters
+				enhancedParams = {
+					...enhancedParams,
+					...scriptVariables
+				};
+			} else {
+				console.warn(`Function "${functionName}" not found in variables script`);
+			}
+		}
+
+		// 2. Process inline variables if specified
+		if (template.variables && template.variables.length > 0) {
+			for (const variable of template.variables) {
+				let value;
+
+				try {
+					if (variable.type === "dotjs") {
+						// Process with dot.js
+						const compiledTemplate = dot.template(variable.value);
+						value = compiledTemplate(enhancedParams);
+					} else {
+						// Process with JavaScript
+						const utils = this.createUtilitiesObject();
+
+						// Create a function that evaluates the expression
+						const evalFn = new Function(
+							'data', 'utils', 'workspaceDir', 'executionDir', 'templateDir',
+							`return (${variable.value});`
+						);
+
+						// Execute the function
+						value = evalFn(
+							enhancedParams,
+							utils,
+							context.workspaceDir,
+							context.executionDir,
+							template.directory
+						);
+					}
+				} catch (error) {
+					throw new Error(`Error evaluating variable "${variable.name}": ${error}`);
+				}
+
+				// Check for undefined values
+				if (value === undefined) {
+					throw new Error(`Variable "${variable.name}" evaluated to undefined`);
+				}
+
+				// Add the variable to the enhanced parameters
+				enhancedParams[variable.name] = value;
+			}
+		}
+
+		return enhancedParams;
+	}
+
+	/**
+	 * Create utilities object for variable scripts
+	 */
+	private createUtilitiesObject() {
+		return {
+			// String transformations
+			toCamelCase: (str: string) => str.replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase()),
+			toPascalCase: (str: string) => {
+				return str
+				.replace(/^([a-z])|-([a-z])/g, (g) => g.replace(/^-/, '').toUpperCase())
+				.replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase());
+			},
+			toSnakeCase: (str: string) => {
+				return str
+				.replace(/([A-Z])/g, (g) => '_' + g.toLowerCase())
+				.replace(/^_/, '')
+				.replace(/[-\s]+/g, '_');
+			},
+			toKebabCase: (str: string) => {
+				return str
+				.replace(/([A-Z])/g, (g) => '-' + g.toLowerCase())
+				.replace(/^-/, '')
+				.replace(/[_\s]+/g, '-');
+			},
+
+			// File path utilities
+			joinPath: (...parts: string[]) => path.join(...parts),
+			resolvePath: (p: string) => path.resolve(p),
+			getBasename: (p: string, ext?: string) => path.basename(p, ext),
+			getDirname: (p: string) => path.dirname(p),
+			getExtname: (p: string) => path.extname(p),
+
+			// Date formatting
+			formatDate: (date: Date, format: string) => {
+				return format.replace(/yyyy|MM|dd|HH|mm|ss/g, (match) => {
+					switch (match) {
+						case 'yyyy': return date.getFullYear().toString();
+						case 'MM': return String(date.getMonth() + 1).padStart(2, '0');
+						case 'dd': return String(date.getDate()).padStart(2, '0');
+						case 'HH': return String(date.getHours()).padStart(2, '0');
+						case 'mm': return String(date.getMinutes()).padStart(2, '0');
+						case 'ss': return String(date.getSeconds()).padStart(2, '0');
+						default: return match;
+					}
+				});
+			},
+
+			// Other utilities
+			generateUUID: () => {
+				// Simple UUID v4 implementation
+				return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+					const r = Math.random() * 16 | 0;
+					return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+				});
+			},
+
+			// Workspace utilities
+			getWorkspaceFiles: async (pattern: string, workspaceDir: string) => {
+				if (!workspaceDir) return [];
+				// This could use VS Code API or glob pattern to find files
+				// For example: glob.sync(pattern, { cwd: workspaceDir })
+				return []; // Placeholder
+			},
+
+			// Content analysis
+			findInFiles: async (pattern: string, workspaceDir: string) => {
+				// Placeholder for file content search functionality
+				return [];
+			}
+		};
 	}
 }
