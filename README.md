@@ -1,5 +1,4 @@
 # Code Template Hub for VS Code
-# Code Template Hub for VS Code
 
 ![GitHub](https://img.shields.io/github/license/JohannesPosch/Code-Template-Hub)
 [![Version](https://img.shields.io/visual-studio-marketplace/v/johnnyp.codeTemplateHub.svg)](https://marketplace.visualstudio.com/items?itemName=johnnyp.codeTemplateHub)
