@@ -1,5 +1,9 @@
 # Code Template Hub Extension for VS Code
 
+Code Template Hub is a powerful VS Code extension that lets you create, manage, and reuse your own code templates with ease. Whether you're scaffolding boilerplate code, setting up project structures, or just tired of copying and pasting from old files — this extension saves you time and keeps your workflow clean.
+
+With an intuitive interface and customizable storage, you can quickly insert templates into any project, organize them by category, and share them across teams. Works seamlessly across languages and project types.
+
 ## Overview
 
 Code Template Hub is a powerful VS Code extension that helps you quickly create files from templates stored in git repositories. Using the [dot.js](https://olado.github.io/doT/index.html) templating engine, you can create sophisticated templates with dynamic content based on user input and predefined variables.

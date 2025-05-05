@@ -12,24 +12,33 @@
 	"engines": {
 		"vscode": "^1.99.0"
 	},
+	"keywords": [
+		"code templates",
+		"template manager",
+		"snippets",
+		"project templates",
+		"code generation",
+		"boilerplate",
+		"developer tools",
+		"VS Code extension",
+		"productivity",
+		"file templates",
+		"template hub"
+	],
 	"categories": [
 		"Snippets",
 		"Other",
 		"Programming Languages"
 	],
 	"activationEvents": [
-		"onStartupFinished",
-		"onCommand:codeTemplateHub.createFromTemplate",
-		"onCommand:codeTemplateHub.refreshTemplates",
-		"onCommand:codeTemplateHub.showDiagnostics",
-		"onCommand:codeTemplateHub.configureAuthorInfo"
+		"onStartupFinished"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "codeTemplateHub.createFromTemplate",
-				"title": "Create Files from Template",
+				"title": "New from Template ...",
 				"category": "Code Template Hub"
 			},
 			{
@@ -52,7 +61,7 @@
 			"explorer/context": [
 				{
 					"command": "codeTemplateHub.createFromTemplate",
-					"group": "templateHub@1"
+					"group": "navigation"
 				}
 			],
 			"editor/context": [
@@ -115,7 +124,7 @@
 					"default": [
 						{
 							"url": "https://github.com/JohannesPosch/templates.git",
-							"name": "Code Template Hub"
+							"name": "Default"
 						}
 					],
 					"description": "List of git repositories containing templates"
