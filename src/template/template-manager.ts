@@ -3,10 +3,15 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as dot from 'dot';
+
+import * as vm from 'vm';
+import { pathToFileURL } from 'url';
 import { Template } from './template';
 import { TemplateConfig } from './template-config';
 import { TemplateRepositoryManager } from '../repository/template-repository-manager';
 import { TemplateRepository } from '../repository/template-repository';
+import { REPL_MODE_STRICT } from 'repl';
+import { error } from 'console';
 
 /**
  * Class to manage template discovery and operations
@@ -322,6 +327,8 @@ export class TemplateManager
 				return false;
 			}
 
+			let variablesFunction = 'generateVariables';
+
 			// If a specific function is specified, validate it
 			if (template.variablesFunction) {
 				if (typeof template.variablesFunction !== 'string') {
@@ -333,46 +340,29 @@ export class TemplateManager
 					return false;
 				}
 
-				// Check if function name is valid
-				if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(template.variablesFunction)) {
-					this.addDiagnostic(
-						repo.id,
-						`Template "${template.name}" has invalid function name in variablesFunction: ${template.variablesFunction}`,
-						'warning'
-					);
-					return false;
-				}
-
-				// Validate that the function exists and has the expected signature
-				const fnValid = await this.validateVariablesFunction(
-					scriptPath,
-					template.variablesFunction,
-					template.name,
-					repo.id
-				);
-
-				if (!fnValid) {
-					return false;
-				}
-			} else {
-				// No specific function name provided, check for default 'generateVariables'
-				const fnValid = await this.validateVariablesFunction(
-					scriptPath,
-					'generateVariables', // Default function name
-					template.name,
-					repo.id
-				);
-
-				// Just log info if default function not found, don't fail validation
-				if (!fnValid) {
-					this.addDiagnostic(
-						repo.id,
-						`Template "${template.name}": No 'generateVariables' function found in script, but variablesFunction not specified`,
-						'info'
-					);
-					// This is not a fatal error
-				}
+				variablesFunction = template.variablesFunction;
 			}
+
+			// Now check the function prototype.
+			const fnValid = await this.validateVariablesFunction(
+				scriptPath,
+				variablesFunction, // Default function name
+				template.name,
+				repo.id
+			);
+
+			// Just log info if default function not found, don't fail validation
+			if (!fnValid) {
+				this.addDiagnostic(
+					repo.id,
+					`Template "${template.name}": No 'generateVariables' function found in script.`,
+					'info'
+				);
+				return false;
+			}
+
+			// Now that it is sure, that the variables function exists and is valid, load it and attach it.
+			template.variablesFn = await this.loadFunction(scriptPath, variablesFunction, template.name, repo.id);
 		}
 
 		return true;
@@ -388,32 +378,22 @@ export class TemplateManager
 		repoId: string
 	): Promise<boolean> {
 		try {
-			// Load the script module
-			// Note: We're using require here for simplicity, but in a real implementation
-			// you might want to use dynamic import or other methods
-			const scriptModule = require(scriptPath);
-
-			// Check if the function exists
-			if (typeof scriptModule[functionName] !== 'function') {
-				this.addDiagnostic(
-					repoId,
-					`Template "${templateName}": Function "${functionName}" not found in script ${scriptPath}`,
-					'warning'
-				);
+			// Load the function by the name from the file and check if it is available.
+			const fn = await this.loadFunction(scriptPath, functionName, templateName, repoId);
+			if(fn === undefined)
+			{
+				// Not available, therefore return false.
 				return false;
 			}
 
-			// Examine the function signature
-			const fn = scriptModule[functionName];
-
-			// Function should accept at least one parameter (for parameters)
-			// Ideally it should accept two (parameters and context)
-			if (fn.length < 1) {
+			// Now check the amount of arguments
+			if(fn.length !== 2)
+			{
+				// Error, invalid amount of arguments in the function
 				this.addDiagnostic(
 					repoId,
-					`Template "${templateName}": Function "${functionName}" should accept at least one parameter (parameters)`,
-					'warning'
-				);
+					`Template "${templateName}": Function "${functionName}" must take exactly 2 parameters, but got ${fn.length}.`,
+					'warning');
 				return false;
 			}
 
@@ -425,6 +405,80 @@ export class TemplateManager
 				'warning'
 			);
 			return false;
+		}
+	}
+
+	private async loadFunction(
+		scriptPath: string,
+		functionName: string,
+		templateName: string,
+		repoId: string
+	): Promise<Function | undefined> {
+		// Get the full path of the script file
+		const fullPath = path.resolve(scriptPath);
+
+		// Check whether the file exists
+		if (!fs.existsSync(fullPath)) {
+			this.addDiagnostic(
+				repoId,
+				`Template "${templateName}": Cannot find the variables sciprt file at: ${fullPath}`,
+				'warning');
+			return;
+		}
+
+		try {
+			// Read the content of the script & compile it to something executable.
+			const code = fs.readFileSync(fullPath, 'utf8');
+			const script = new vm.Script(code, { filename: fullPath });
+
+			const module = { exports: {} };
+			const context = vm.createContext({ module, exports: module.exports, require, fetch });
+			script.runInContext(context);
+
+			// We expect module.exports to be an object with named functions
+			const exported = module.exports;
+
+			// If it's directly a function (default export case)
+			if (typeof exported === 'function') {
+				// We can only return this if functionName matches its name (if known)
+				if (exported.name === functionName) {
+					return exported;
+				} else {
+					this.addDiagnostic(
+						repoId,
+						`Template "${templateName}": Exported function does not match the expected name "${functionName}".`,
+						'warning');
+					return;
+				}
+			}
+
+			// If it's an object, look up the named function
+			if (typeof exported === 'object' && exported !== null) {
+				const fn = (exported as Record<string, unknown>)[functionName];
+				if (typeof fn === 'function') {
+					return fn;
+				} else {
+					this.addDiagnostic(
+						repoId,
+						`Template "${templateName}": Function "${functionName}" not found or not a function in script.`,
+						'warning');
+					return;
+				}
+			}
+
+			// If it's neither a function nor an object, it's invalid
+			this.addDiagnostic(
+				repoId,
+				`Template "${templateName}": Script did not export a valid function or object.`,
+				'warning');
+			return;
+
+		} catch (error) {
+			this.addDiagnostic(
+				repoId,
+				`Template "${templateName}": Failed to load custom variables function: ${error}`,
+				'warning');
+			return;
 		}
 	}
 

@@ -42,4 +42,7 @@ export interface Template
 
 	/** Repository display name (added at runtime) */
 	repositoryName?: string;
+
+	/** The compiled variables function (added at runtime) */
+	variablesFn?: Function;
 }

@@ -91,7 +91,11 @@ export function registerViews(
 				const createdFiles = await templateRenderer.renderTemplate(
 					template,
 					targetDir,
-					params
+					params,
+					{
+						workspaceDir: 'test',
+						executionDir: 'exec_test'
+					}
 				);
 
 				// Show success message

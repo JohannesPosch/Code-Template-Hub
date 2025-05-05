@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as dot from 'dot';
 import { Template } from './template';
 import { TemplateParameter } from './template-parameter';
+import { pathToFileURL } from 'url';
 
 /**
  * Interface for template rendering parameters
@@ -317,59 +318,47 @@ export class TemplateRenderer {
 		let enhancedParams = { ...params };
 
 		// 1. Process script-based variables if specified
-		if (template.variablesScript && template.directory) {
-			const scriptPath = path.join(template.directory, template.variablesScript);
+		if (template.variablesFn !== undefined) {
 
-			// Load the script module
-			const scriptModule = await import(scriptPath);
+			// Create utilities object
+			const utils = this.createUtilitiesObject();
 
-			// Determine function to call
-			const functionName = template.variablesFunction || "generateVariables";
-			const generateFn = scriptModule[functionName];
+			let scriptVariables;
 
-			if (typeof generateFn === 'function') {
-				// Create utilities object
-				const utils = this.createUtilitiesObject();
-
-				let scriptVariables;
-
-				try	{
-					scriptVariables = await generateFn(params, {
-						utils,
-						workspaceDir: context.workspaceDir,
-						executionDir: context.executionDir,
-						templateDir: template.directory
-					});
-				} catch (error) {
-					throw new Error(`Error executing variables function "${functionName}": ${error}`);
-				}
-
-				// Validate the returned variables
-				if (!scriptVariables || typeof scriptVariables !== 'object' || Array.isArray(scriptVariables)) {
-					throw new Error(
-						`Variables function "${functionName}" did not return an object: ${typeof scriptVariables}`
-						);
-				}
-
-				// Validate all keys are strings and values are non-undefined
-				for (const key in scriptVariables) {
-					if (typeof key !== 'string') {
-						throw new Error(`Variable key from "${functionName}" is not a string: ${key}`);
-					}
-
-					if (scriptVariables[key] === undefined) {
-						throw new Error(`Variable "${key}" from "${functionName}" has undefined value`);
-					}
-				}
-
-				// Merge script variables into parameters
-				enhancedParams = {
-					...enhancedParams,
-					...scriptVariables
-				};
-			} else {
-				console.warn(`Function "${functionName}" not found in variables script`);
+			try	{
+				scriptVariables = await template.variablesFn(params, {
+					utils,
+					workspaceDir: context.workspaceDir,
+					executionDir: context.executionDir,
+					templateDir: template.directory
+				});
+			} catch (error) {
+				throw new Error(`Error executing variables function "${template.variablesFunction}": ${error}`);
 			}
+
+			// Validate the returned variables
+			if (!scriptVariables || typeof scriptVariables !== 'object' || Array.isArray(scriptVariables)) {
+				throw new Error(
+					`Variables function "${template.variablesFunction}" did not return an object: ${typeof scriptVariables}`
+					);
+			}
+
+			// Validate all keys are strings and values are non-undefined
+			for (const key in scriptVariables) {
+				if (typeof key !== 'string') {
+					throw new Error(`Variable key from "${template.variablesFunction}" is not a string: ${key}`);
+				}
+
+				if (scriptVariables[key] === undefined) {
+					throw new Error(`Variable "${key}" from "${template.variablesFunction}" has undefined value`);
+				}
+			}
+
+			// Merge script variables into parameters
+			enhancedParams = {
+				...enhancedParams,
+				...scriptVariables
+			};
 		}
 
 		// 2. Process inline variables if specified
@@ -388,17 +377,18 @@ export class TemplateRenderer {
 
 						// Create a function that evaluates the expression
 						const evalFn = new Function(
-							'data', 'utils', 'workspaceDir', 'executionDir', 'templateDir',
+							'data', 'context',
 							`return (${variable.value});`
 						);
 
 						// Execute the function
 						value = evalFn(
-							enhancedParams,
-							utils,
-							context.workspaceDir,
-							context.executionDir,
-							template.directory
+							enhancedParams, {
+								utils,
+								workspaceDir: context.workspaceDir,
+								executionDir: context.executionDir,
+								templateDir: template.directory
+							}
 						);
 					}
 				} catch (error) {
