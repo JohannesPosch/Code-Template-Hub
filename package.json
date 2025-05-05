@@ -2,12 +2,12 @@
 	"name": "codeTemplateHub",
 	"displayName": "Code Template Hub",
 	"description": "Create files from git-based templates using dot.js templating. Store templates in repositories, manage them in a tree view, and generate files with powerful templating features. Supports version-controlled templates with dynamic content, parameter inputs, and author information for team collaboration.",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"icon": "icon.png",
 	"publisher": "JohnnyP",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Jo,hannesPosch/Code-Template-Hub.git"
+		"url": "https://github.com/JohannesPosch/Code-Template-Hub"
 	},
 	"engines": {
 		"vscode": "^1.99.0"
