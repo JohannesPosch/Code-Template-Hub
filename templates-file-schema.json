@@ -140,6 +140,10 @@
 							}
 						}
 					}
+				},
+				"visibleIf": {
+					"type": "string",
+					"description": "JavaScript expression to determine visibility of this parameter"
 				}
 			},
 			"allOf": [

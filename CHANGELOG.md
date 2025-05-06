@@ -13,3 +13,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Other Changes
 
 - Updated README with custom variable documentation
+
+## 0.3.0
+
+### New Features
+
+- **`visibleIf` Condition Support**: Introduced the `visibleIf` property for template fields. This allows fields to be conditionally displayed based on the evaluation of a JavaScript expression, providing dynamic control over template customization.

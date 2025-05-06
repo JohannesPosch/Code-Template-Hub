@@ -82,7 +82,12 @@ export function registerViews(
 			try {
 				// Collect parameters
 				const templateRenderer = new TemplateRenderer();
-				const params = await templateRenderer.collectParameters(template);
+				const params = await templateRenderer.collectParameters(
+					template,
+					{
+						workspaceDir: (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined,
+						executionDir: targetDir
+					});
 				if (!params) {
 					return; // User cancelled
 				}
@@ -93,8 +98,8 @@ export function registerViews(
 					targetDir,
 					params,
 					{
-						workspaceDir: 'test',
-						executionDir: 'exec_test'
+						workspaceDir: (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined,
+						executionDir: targetDir
 					}
 				);
 

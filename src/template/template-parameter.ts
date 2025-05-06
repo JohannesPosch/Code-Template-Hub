@@ -29,4 +29,7 @@ export interface TemplateParameter
 
 	/** Error message for invalid pattern */
 	patternErrorMessage?: string;
+
+	/** Function to evaluate whether the parameter shall be displayed to the user. (default: true) */
+	visibleIf?: string;
 }
