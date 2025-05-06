@@ -287,6 +287,9 @@ export class TemplateCommandHandler {
 			const lastName = config.get<string>('lastName', '');
 			const email = config.get<string>('email', '');
 
+			const org_config = vscode.workspace.getConfiguration('codeTemplateHub.organization');
+			const organization = org_config.get<string>('name', '');
+
 			// Prompt for first name
 			const newFirstName = await vscode.window.showInputBox({
 				title: 'Author First Name',
@@ -320,10 +323,18 @@ export class TemplateCommandHandler {
 				return; // User cancelled
 			}
 
+			// Prompt for email
+			const newOrganization = await vscode.window.showInputBox({
+				title: 'Organization Name',
+				prompt: 'Enter your organization name for use in templates',
+				value: organization
+			});
+
 			// Update settings
 			await config.update('firstName', newFirstName, vscode.ConfigurationTarget.Global);
 			await config.update('lastName', newLastName, vscode.ConfigurationTarget.Global);
 			await config.update('email', newEmail, vscode.ConfigurationTarget.Global);
+			await org_config.update('name', newOrganization, vscode.ConfigurationTarget.Global);
 
 			vscode.window.showInformationMessage('Author information updated successfully');
 		} catch (error) {
