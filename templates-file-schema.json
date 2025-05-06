@@ -1,0 +1,204 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Code Template Hub Template Configuration",
+	"description": "Schema for defining templates in the Code Template Hub extension",
+	"type": "object",
+	"required": ["templates"],
+	"properties": {
+		"templates": {
+			"type": "array",
+			"description": "Array of template definitions",
+			"items": {
+				"$ref": "#/definitions/template"
+			}
+		}
+	},
+	"definitions": {
+		"template": {
+			"type": "object",
+			"required": ["name", "description", "files"],
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": "Display name of the template (must be unique within a repository)"
+				},
+				"description": {
+					"type": "string",
+					"description": "Brief description of what the template creates"
+				},
+				"icon": {
+					"type": "string",
+					"description": "Icon to display (VS Code codicon name)",
+					"examples": ["file-code", "react", "globe", "markdown", "json"]
+				},
+				"category": {
+					"type": "string",
+					"description": "Category for grouping templates",
+					"examples": ["C", "C++", "Python", "C#", "Web", "Documentation", "Configuration"]
+				},
+				"files": {
+					"type": "array",
+					"description": "Files to create from this template",
+					"minItems": 1,
+					"items": {
+						"$ref": "#/definitions/templateFile"
+					}
+				},
+				"parameters": {
+					"type": "array",
+					"description": "Parameters to collect from the user",
+					"items": {
+						"$ref": "#/definitions/parameter"
+					}
+				},
+				"variables": {
+					"type": "array",
+					"description": "Custom variables computed from parameters",
+					"items": {
+						"$ref": "#/definitions/customVariable"
+					}
+				},
+				"variablesScript": {
+					"type": "string",
+					"description": "Path to a JavaScript file that generates custom variables"
+				},
+				"variablesFunction": {
+					"type": "string",
+					"description": "Name of the function to call in the variables script (default: 'generateVariables')"
+				}
+			}
+		},
+		"templateFile": {
+			"type": "object",
+			"required": ["source", "destination"],
+			"properties": {
+				"source": {
+					"type": "string",
+					"description": "Source path within the repository (relative to repo root)"
+				},
+				"destination": {
+					"type": "string",
+					"description": "Destination path using dot.js templating syntax",
+					"examples": ["{{= data.name }}.js", "{{= data.namespace ? data.namespace.replace(/\\./g, '/') + '/' : '' }}{{= data.name }}.cs"]
+				},
+				"process": {
+					"type": "boolean",
+					"description": "Whether to process this file with dot.js (default: true)"
+				}
+			}
+		},
+		"parameter": {
+			"type": "object",
+			"required": ["name", "displayName", "type"],
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": "Parameter name (for use in templates)",
+					"pattern": "^[a-zA-Z][a-zA-Z0-9]*$"
+				},
+				"displayName": {
+					"type": "string",
+					"description": "Display name shown in UI"
+				},
+				"description": {
+					"type": "string",
+					"description": "Description of the parameter"
+				},
+				"type": {
+					"type": "string",
+					"description": "Type of parameter",
+					"enum": ["string", "boolean", "selection"]
+				},
+				"required": {
+					"type": "boolean",
+					"description": "Whether the parameter is required"
+				},
+				"default": {
+					"description": "Default value for the parameter"
+				},
+				"pattern": {
+					"type": "string",
+					"description": "Regular expression pattern for validation (string type only)"
+				},
+				"patternErrorMessage": {
+					"type": "string",
+					"description": "Error message for invalid pattern (string type only)"
+				},
+				"options": {
+					"type": "array",
+					"description": "Options for selection type",
+					"items": {
+						"type": "object",
+						"required": ["value", "label"],
+						"properties": {
+							"value": {
+								"description": "Option value (used in templates)"
+							},
+							"label": {
+								"type": "string",
+								"description": "Display label shown in UI"
+							}
+						}
+					}
+				}
+			},
+			"allOf": [
+				{
+					"if": {
+						"properties": { "type": { "enum": ["string"] } }
+					},
+					"then": {
+						"properties": {
+							"default": { "type": ["string", "null"] }
+						}
+					}
+				},
+				{
+					"if": {
+						"properties": { "type": { "enum": ["boolean"] } }
+					},
+					"then": {
+						"properties": {
+						"default": { "type": "boolean" }
+						}
+					}
+				},
+				{
+					"if": {
+						"properties": { "type": { "enum": ["selection"] } }
+					},
+					"then": {
+						"required": ["options"],
+						"properties": {
+							"default": { "type": "string" }
+						}
+					}
+				}
+			]
+		},
+		"customVariable": {
+			"type": "object",
+			"required": ["name", "value"],
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": "Name of the variable"
+				},
+				"description": {
+					"type": "string",
+					"description": "Description of the variable"
+				},
+				"value": {
+					"type": "string",
+					"description": "JavaScript expression or dot.js template"
+				},
+				"type": {
+					"type": "string",
+					"enum": ["js", "dotjs"],
+					"default": "js",
+					"description": "Type of evaluation"
+				}
+			}
+		}
+	}
+}

@@ -1,41 +1,50 @@
-# Code Template Hub Extension for VS Code
+# Code Template Hub for VS Code
 
-## Overview
+![GitHub](https://img.shields.io/github/license/JohannesPosch/Code-Template-Hub)
+[![Version](https://img.shields.io/visual-studio-marketplace/v/johnnyp.codeTemplateHub.svg)](https://marketplace.visualstudio.com/items?itemName=johnnyp.codeTemplateHub)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/johnnyp.codeTemplateHub.svg)](https://marketplace.visualstudio.com/items?itemName=johnnyp.codeTemplateHub)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/johnnyp.codeTemplateHub.svg)](https://marketplace.visualstudio.com/items?itemName=johnnyp.codeTemplateHub)
+[![Rating](https://img.shields.io/visual-studio-marketplace/stars/johnnyp.codeTemplateHub.svg)](https://marketplace.visualstudio.com/items?itemName=johnnyp.codeTemplateHub&ssr=false#review-details)
 
-Code Template Hub is a powerful VS Code extension that helps you quickly create files from templates stored in git repositories. Using the [dot.js](https://olado.github.io/doT/index.html) templating engine, you can create sophisticated templates with dynamic content based on user input and predefined variables.
+Ever found yourself copying and pasting the same boilerplate code structure over and over? Or struggled to maintain consistency across team projects when everyone has their own way of creating files? What if you could define a template once and everyone on your team could use it with just a few clicks?
 
-- **Repository-based**: Templates are stored in git repositories, allowing for version control and sharing across teams
-- **Flexible templating**: Use dot.js templating syntax for powerful and flexible templates
-- **Template Explorer**: Browse templates in a structured tree view
-- **Customizable parameters**: Define parameters for your templates to collect user input with validation
-- **Automatic cleanup**: Repositories are automatically cleaned up when removed from configuration
-- **Author Information**: Include developer attribution in generated files
-- **Multi-Repository Support**: Organize templates across multiple repositories
+**Code Template Hub** solves these challenges by turning your best code patterns into reusable templates that live in git repositories. Powered by the flexible [dot.js](https://olado.github.io/doT/index.html) templating engine, it offers:
 
-## Installation
+- **Powerful variable system** with parameter inputs, computed values, and JavaScript expressions
+- **Dynamic content generation** using conditional blocks, loops, and template functions
+- **Project-level configuration** through VS Code settings for team-wide template sharing
+- **Automatic updates** to keep templates current across your entire team
 
-1. Install the extension from the VS Code Marketplace
-2. Configure at least one template repository (see below)
+No more simple text substitution — create truly intelligent templates that adapt to your specific needs.
 
-## Configuration
+## Key Benefits
 
-### Template Repositories
+- **Project-specific templates**: Configure templates at the workspace level for consistent project structures
+- **Automatic updates**: Templates refresh on startup, ensuring developers always use current versions
+- **Team synchronization**: All team members can access the same templates without additional setup
+- **Customizable generation**: Templates adapt to your needs with parameters and dynamic variables
 
-Templates are pulled from git repositories. To configure repositories:
+## Getting Started
 
-1. Open VS Code settings
-2. Navigate to Extensions > Code Template Hub
-3. Add repositories to the "Repositories" setting
+### Installation
 
-Example configuration:
+1. Install the extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=johnnyp.codeTemplateHub)
+2. Open VS Code settings and navigate to **Extensions > Code Template Hub**
+3. Configure at least one template repository
 
+### Repository Configuration
+
+![Showcase Template Creation](media/codeTemplateHub_configureRepositories.gif)
+
+Templates are stored in git repositories and can be configured at two levels:
+
+**User Settings (global):**
 ```json
 "codeTemplateHub.repositories": [
   {
     "url": "https://github.com/username/my-templates.git",
     "branch": "main",
-    "name": "My Templates",
-    "description": "Common templates for personal projects"
+    "name": "My Templates"
   },
   {
     "url": "https://github.com/company/private-templates.git",
@@ -51,12 +60,23 @@ Example configuration:
 ]
 ```
 
+**Workspace Settings (project-specific):**
+```json
+"codeTemplateHub.repositories": [
+  {
+    "url": "https://github.com/team/project-templates.git",
+    "branch": "main",
+    "name": "Project Templates"
+  }
+]
+```
+
 > **Note**:
 > - Repositories are stored in the extension's global storage and are automatically deleted when removed from configuration.
 > - The `token` property is only applicable for HTTPS repository URLs and has no effect on SSH URLs.
 > - Authentication tokens are useful if you don't want to configure Git credentials on the local machine.
 
-Configuration options:
+#### Repository Configuration Properties
 
 | Property | Description | Required |
 |----------|-------------|----------|
@@ -66,63 +86,65 @@ Configuration options:
 | `description` | Description of the repository | No |
 | `token` | Authentication token for private repositories (HTTPS URLs only) | No |
 
-### Author Information
+### Author and Organization Information
 
-Templates can include author information. To configure:
-
-1. Run the command "Code Template Hub: Configure Author Information"
-2. Enter your first name, last name, and email address
-
-Or manually configure in settings:
+Templates can include developer attribution information:
 
 ```json
 "codeTemplateHub.author.firstName": "John",
 "codeTemplateHub.author.lastName": "Doe",
-"codeTemplateHub.author.email": "john.doe@example.com"
+"codeTemplateHub.author.email": "john.doe@example.com",
+"codeTemplateHub.organization.name": "Acme Corporation"
 ```
+
+You can also run **Code Template Hub: Configure Author Information** from the command palette.
+
+![Showcase Author Configuration](media/codeTemplateHub_configureAuthor.gif)
 
 ## Using Templates
 
 ### Creating Files from Templates
 
 1. Right-click in the Explorer or Editor
-2. Select "Create Files from Template"
-3. Choose a template from the displayed list (organized by category)
+2. Select **New from Template ...**
+3. Choose a template from the list
 4. Enter values for any template parameters
 5. Files will be created in the selected location
 
-### Refreshing Templates
+![Showcase Template Creation](media/codeTemplateHub_showcase.gif)
 
-To update templates from their repositories:
+### Template Updates
 
-1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-2. Run "Code Template Hub: Refresh Templates"
+Templates are updated automatically when VS Code starts. To refresh manually:
 
-Alternatively, click on the repository status icon in the status bar (shows as "$(repo) Template Hub").
+- Run **Code Template Hub: Refresh Templates** from the Command Palette
+- Click the repository status icon in the status bar (`$(repo) Template Hub`)
+
+<!-- IMAGE: Screenshot showing the refresh templates command in the command palette -->
 
 ## Creating Your Own Templates
 
 ### Repository Structure
 
-A template repository should contain:
+A template repository needs:
 
 1. A `templates.json` file in the root directory
 2. Template files referenced in the configuration
-
-Example repository structure:
+3. Optional JavaScript files for advanced variable generation
 
 ```
 /
 ├── templates.json
+├── scripts/
+│   └── variables.js
 ├── templates/
-│   ├── react/
-│   │   ├── component.dot.js
-│   │   ├── styles.dot.js
-│   │   └── index.dot.js
-│   ├── cpp/
-│   │   ├── class.dot.js
-│   │   └── header.dot.js
+    ├── category1/
+    │   └── template1.dot.js
+    └── category2/
+        └── template2.dot.js
 ```
+
+<!-- IMAGE: Screenshot of a real template repository showing the file structure in VS Code or GitHub -->
 
 ### templates.json Format
 
@@ -132,38 +154,43 @@ The `templates.json` file defines all available templates:
 {
   "templates": [
     {
-      "name": "React Component",
-      "description": "Create a new React functional component with styles",
-      "icon": "react",
-      "category": "React",
+      "name": "Component Template",
+      "description": "Create a new component with supporting files",
+      "icon": "code",
+      "category": "Frontend",
       "files": [
         {
-          "source": "templates/react/component.dot.js",
-          "destination": "{{= data.name }}/{{= data.name }}.tsx"
+          "source": "templates/component.dot.js",
+          "destination": "{{= data.name }}/{{= data.name }}.js"
         },
         {
-          "source": "templates/react/styles.dot.js",
-          "destination": "{{= data.name }}/{{= data.name }}.module.css"
-        },
+          "source": "templates/styles.dot.js",
+          "destination": "{{= data.name }}/styles.css"
+        }
+      ],
+	  "variablesScript": "scripts/variables.js",
+      "variables": [
         {
-          "source": "templates/react/index.dot.js",
-          "destination": "{{= data.name }}/index.ts"
+          "name": "className",
+          "description": "CSS class name",
+          "value": "utils.toKebabCase(data.name)",
+          "type": "js"
         }
       ],
       "parameters": [
         {
           "name": "name",
           "displayName": "Component Name",
-          "description": "Name of the component (PascalCase)",
+          "description": "Name of the component",
           "type": "string",
           "required": true,
           "pattern": "^[A-Z][a-zA-Z0-9]*$",
           "patternErrorMessage": "Component name must be in PascalCase"
         },
         {
-          "name": "withHooks",
-          "displayName": "Include React Hooks",
-          "description": "Add useState and useEffect hooks",
+          "name": "includeTests",
+          "displayName": "Include Tests",
+          "description": "Add test files",
           "type": "boolean",
           "default": false
         },
@@ -185,7 +212,9 @@ The `templates.json` file defines all available templates:
 }
 ```
 
-Template properties:
+### Template Configuration Properties
+
+#### Template Properties
 
 | Property | Description | Required |
 |----------|-------------|----------|
@@ -195,8 +224,11 @@ Template properties:
 | `category` | Category for grouping templates | No |
 | `files` | Array of files to create | Yes |
 | `parameters` | Array of parameters to collect from user | No |
+| `variables` | Array of custom variables computed from parameters | No |
+| `variablesScript` | Path to a JavaScript file that generates custom variables (relative to repo root) | No |
+| `variablesFunction` | Name of the function to call in the variables script (default: 'generateVariables') | No |
 
-File properties:
+#### File Properties
 
 | Property | Description | Required |
 |----------|-------------|----------|
@@ -204,7 +236,7 @@ File properties:
 | `destination` | Destination path (uses dot.js templating syntax) | Yes |
 | `process` | Whether to process this file with dot.js (default: true) | No |
 
-Parameter properties:
+#### Parameter Properties
 
 | Property | Description | Required |
 |----------|-------------|----------|
@@ -218,49 +250,180 @@ Parameter properties:
 | `patternErrorMessage` | Error message for invalid pattern | No |
 | `options` | Options for selection type (array of {value, label} objects) | For selection type |
 
-### Template File Syntax
+#### Custom Variable Properties
 
-Template files use the [dot.js syntax](https://olado.github.io/doT/index.html). Parameters are accessible via the `data` object:
+| Property | Description | Required |
+|----------|-------------|----------|
+| `name` | Name of the variable | Yes |
+| `description` | Description of the variable | No |
+| `value` | JavaScript expression or dot.js template | Yes |
+| `type` | Type of evaluation: 'js' or 'dotjs' (default: 'js') | No |
+
+## Variable System
+
+![Template Processing Workflow](media/flow.png)
+
+Code Template Hub processes templates through a series of steps, with variables calculated and made available at each stage. This system provides powerful customization possibilities for your templates.
+
+### Template Processing Flow
+
+1. **Parameter Collection**: User is prompted for input parameters defined in the template
+2. **Script Variables**: Variables in the variablesScript file are evaluated
+3. **Inline Variables**: JavaScript and dot.js variables in the template.json are processed
+4. **Template Processing**: Template files are processed with all available variables
+5. **File Generation**: Final files are created at the specified location
+
+At each step, variables defined in previous steps are available. For example, script variables can access user parameters, and inline variables can access both parameters and script variables.
+
+### Custom Variables
+
+Two methods are available for creating custom variables:
+
+#### 1. Inline Variable Definitions
+
+Define variables directly in the `templates.json` file:
+
+```json
+"variables": [
+  {
+    "name": "className",
+    "description": "CSS class name derived from component name",
+    "value": "utils.toKebabCase(data.name)",
+    "type": "js"
+  }
+]
+```
+
+This supports two evaluation types:
+- **JavaScript (`js`)**: JavaScript expressions with access to parameters and utilities
+- **dot.js (`dotjs`)**: Template expressions with access to all parameters
+
+#### 2. Script-Based Variables
+
+For complex logic, use a dedicated JavaScript file:
+
+```json
+"variablesScript": "scripts/variables.js",
+"variablesFunction": "generateVariables"  // Optional, defaults to "generateVariables"
+```
+
+Create a script that exports the specified function (or "generateVariables" by default):
 
 ```javascript
 /**
- * {{=data.name}} Component
- *
- * @component
- * @author {{=data.author.fullName}} <{{=data.author.email}}>
- * @created {{=data.date.toLocaleDateString()}}
+ * Generate variables for templates
+ * @param {Object} params - User parameters
+ * @param {Object} context - Additional context
+ * @returns {Object} - Custom variables
  */
+function generateVariables(params, context) {
+  const { name } = params;
+  const { utils } = context;
 
-import React from 'react';
-{{? data.withHooks }}
-import { useState, useEffect } from 'react';
-{{?}}
+  return {
+    "camelName": utils.toCamelCase(name),
+    "pascalName": utils.toPascalCase(name),
+    "kebabName": utils.toKebabCase(name)
+  };
+}
 
-const {{=data.name}} = (props) => {
-  {{? data.withHooks }}
-  const [state, setState] = useState(null);
+module.exports = {
+  generateVariables
+}
+```
 
-  useEffect(() => {
-    // Component mount effect
-    return () => {
-      // Component unmount cleanup
-    };
-  }, []);
-  {{?}}
+The script function:
+- Can be asynchronous (using `async/await`)
+- Can make HTTP requests with `fetch` to incorporate external data
+- Has access to all parameters and built-in utilities
+- Can return simple values or complex objects
 
-  return (
-    <div>
-      <h1>{{=data.name}} Component</h1>
-    </div>
-  );
-};
+<!-- GIF: Animation showing the creation of a custom variable script and how it affects generated templates -->
 
-export default {{=data.name}};
+#### Script Function Interface
+
+The function in the variables script should implement this interface:
+
+```typescript
+/**
+ * Generate custom variables for template
+ *
+ * @param params - All user parameters and built-in variables
+ * @param context - Additional context information
+ * @returns Dictionary with string keys and any values
+ */
+function generateVariables(
+  params: Record<string, any>,
+  context: {
+    utils: UtilityFunctions;
+    workspaceDir?: string;
+    executionDir: string;
+    templateDir: string;
+  }
+): Record<string, any> | Promise<Record<string, any>>;
+```
+
+The function:
+- Can be synchronous or asynchronous (returning a Promise)
+- Must return an object with string keys
+- Values can be of any type (string, number, boolean, array, object, etc.)
+- Has access to all parameters and built-in context
+### Available Data and Utilities
+
+#### Variable Data Reference
+
+| Variable Source | Inline JS | Inline dot.js | Script Function |
+|-----------------|-----------|---------------|----------------|
+| **User Parameters** | `data.paramName` | `{{= data.paramName }}` | `params.paramName` |
+| **Author Info** | `data.author.firstName`<br>`data.author.lastName`<br>`data.author.email`<br>`data.author.fullName` | `{{= data.author.firstName }}` | `params.author.firstName` |
+| **Organization Info** | `data.organization.name` | `{{= data.organization.name }}` | `params.organization.name` |
+| **Date** | `data.date` | `{{= data.date }}` | `params.date` |
+| **Utilities** | `utils.functionName()` | N/A | `context.utils.functionName()` |
+| **Context Info** | `context.workspaceDir`<br>`context.executionDir`<br>`context.templateDir` | N/A | `context.workspaceDir`<br>`context.executionDir`<br>`context.templateDir` |
+
+#### Context Information Reference
+
+The context information provides important path references:
+
+| Path Variable | Description |
+|---------------|-------------|
+| `workspaceDir` | The current VS Code workspace directory |
+| `executionDir` | The directory where the template is being created |
+| `templateDir` | The directory of the template in the repository |
+
+These paths can be used in both inline JS variables and script-based variables. For example:
+- Use `workspaceDir` to find configuration files in the project root
+- Use `executionDir` to determine relative paths for imports
+- Use `templateDir` to reference other files in the template
+
+#### Available Utility Functions
+
+```javascript
+utils = {
+  // String transformations
+  toCamelCase: (str) => /* Convert to camelCase */,
+  toPascalCase: (str) => /* Convert to PascalCase */,
+  toSnakeCase: (str) => /* Convert to snake_case */,
+  toKebabCase: (str) => /* Convert to kebab-case */,
+
+  // File path utilities
+  joinPath: (...parts) => /* Join path parts */,
+  resolvePath: (p) => /* Resolve path */,
+  getBasename: (p, ext) => /* Get file basename */,
+  getDirname: (p) => /* Get directory name */,
+  getExtname: (p) => /* Get file extension */,
+
+  // Date formatting
+  formatDate: (date, format) => /* Format date */,
+
+  // ID generation
+  generateUUID: () => /* Generate a UUID */
+}
 ```
 
 ### Available Template Variables
 
-Apart from user-defined parameters, these built-in variables are available:
+Apart from user-defined parameters and custom variables, these built-in variables are available:
 
 #### Author Information
 
@@ -270,6 +433,12 @@ Apart from user-defined parameters, these built-in variables are available:
 | `data.author.lastName` | Author's last name |
 | `data.author.email` | Author's email address |
 | `data.author.fullName` | Author's full name (first + last) |
+
+#### Organization Information
+
+| Variable | Description |
+|----------|-------------|
+| `data.organization.name` | Organization name |
 
 #### Date Information
 
@@ -287,69 +456,25 @@ const formattedDate = {{= data.date.toLocaleDateString() }};
 const formattedTime = {{= data.date.toLocaleTimeString() }};
 ```
 
-### Template Syntax Examples
+### Template File Syntax
 
-#### Conditional Content
-
-```javascript
-{{? data.includeTests }}
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
-{{?}}
-```
-
-#### Loops
+Template files use dot.js syntax. Here's a basic example:
 
 ```javascript
-<ul>
-{{~ data.items :item:index }}
-  <li>{{= index + 1 }}. {{= item.name }}</li>
-{{~}}
-</ul>
-```
-
-#### Expressions
-
-```javascript
-const componentName = '{{= data.name.toUpperCase() }}';
-```
-
-## Example Templates
-
-### React Component
-
-Template file: `component.dot.js`
-```javascript
-import React from 'react';
-{{? data.withHooks }}
-import { useState, useEffect } from 'react';
-{{?}}
-{{? data.styleType === 'css' }}
-import styles from './{{=data.name}}.module.css';
-{{?}}
-
 /**
  * {{=data.name}} Component
- *
- * @component
  * @author {{=data.author.fullName}} <{{=data.author.email}}>
- * @created {{=data.date.formatted}}
+ * @created {{=data.date.toLocaleDateString()}}
  */
-const {{=data.name}} = (props) => {
-  {{? data.withHooks }}
-  const [state, setState] = useState(null);
 
-  useEffect(() => {
-    // Component mount effect
-    return () => {
-      // Component unmount cleanup
-    };
-  }, []);
-  {{?}}
+{{? data.includeImport }}
+import { Component } from 'library';
+{{?}}
 
+const {{=data.name}} = () => {
   return (
-    <div {{? data.styleType === 'css' }}className={styles.container}{{?}}>
-      <h1 {{? data.styleType === 'css' }}className={styles.title}{{?}}>{{=data.name}} Component</h1>
+    <div className="{{= data.className }}">
+      {{=data.name}} Component
     </div>
   );
 };
@@ -357,144 +482,14 @@ const {{=data.name}} = (props) => {
 export default {{=data.name}};
 ```
 
-### CSS Module
+<!-- IMAGE: Sample of template output showing how variables are replaced -->
 
-Template file: `styles.dot.js`
-```css
-/*
- * {{=data.name}} Component Styles
- * @author {{=data.author.fullName}} <{{=data.author.email}}>
- * @created {{=data.date.toLocaleDateString()}}
- */
+Common template syntax patterns:
 
-.container {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-```
-
-### C++ Class
-
-Template file: `class.dot.js`
-```cpp
-/**
- * @file {{=data.name}}.cpp
- * @brief Implementation of the {{=data.name}} class
- * @author {{=data.author.fullName}} <{{=data.author.email}}>
- * @date {{=data.date.toISOString().split('T')[0]}}
- */
-
-#include "{{=data.name}}.h"
-
-{{? data.namespace }}
-namespace {{=data.namespace}} {
-{{?}}
-
-{{=data.name}}::{{=data.name}}() {
-    // Constructor implementation
-}
-
-{{=data.name}}::~{{=data.name}}() {
-    // Destructor implementation
-}
-
-{{? data.namespace }}
-} // namespace {{=data.namespace}}
-{{?}}
-```
-
-### C++ Header
-
-Template file: `header.dot.js`
-```cpp
-/**
- * @file {{=data.name}}.h
- * @brief Declaration of the {{=data.name}} class
- * @author {{=data.author.fullName}} <{{=data.author.email}}>
- * @date {{=data.date.toISOString().split('T')[0]}}
- */
-
-#pragma once
-
-{{? data.namespace }}
-namespace {{=data.namespace}} {
-{{?}}
-
-class {{=data.name}} {
-public:
-    /**
-     * @brief Constructor
-     */
-    {{=data.name}}();
-
-    /**
-     * @brief Destructor
-     */
-    ~{{=data.name}}();
-
-{{? data.includeVirtualDestructor }}
-    /**
-     * @brief Virtual destructor
-     */
-    virtual ~{{=data.name}}();
-{{?}}
-
-private:
-    // Private members
-};
-
-{{? data.namespace }}
-} // namespace {{=data.namespace}}
-{{?}}
-```
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `codeTemplateHub.createFromTemplate` | Create Files from Template |
-| `codeTemplateHub.refreshTemplates` | Refresh Templates |
-| `codeTemplateHub.showDiagnostics` | Show Template Diagnostics |
-| `codeTemplateHub.configureAuthorInfo` | Configure Author Information |
-
-## Troubleshooting
-
-### Diagnostics
-
-Run the "Code Template Hub: Show Template Diagnostics" command to see information about:
-
-- Repository status and errors
-- Available templates
-- Warning and error messages
-
-### Common Issues
-
-#### Templates Not Showing Up
-
-1. Check repository configuration in settings
-2. Run "Code Template Hub: Refresh Templates"
-3. Check diagnostics for error messages
-
-#### Authentication Errors with Private Repositories
-
-1. Ensure you have added a valid token in the repository configuration
-2. For SSH URLs, make sure your SSH keys are properly set up
-3. Check diagnostics for specific error messages
-
-#### Invalid Template Definition
-
-1. Verify your `templates.json` structure
-2. Ensure all required fields are present
-3. Check paths to template files
-
-## Advanced Features
+- **Variable insertion**: `{{= data.variableName }}`
+- **Conditional blocks**: `{{? condition }}...content...{{?}}`
+- **Loops**: `{{~ data.items :item:index }}...{{~}}`
+- **Expressions**: `{{= data.name.toUpperCase() }}`
 
 ### Template Destination Paths
 
@@ -521,24 +516,58 @@ The dot.js approach gives you flexibility for transformations:
 "destination": "{{= data.name }}/{{= data.name.toLowerCase().replace(/[^a-z0-9]/g, '-') }}.ts"
 ```
 
-### Post-Generation Actions
+You can also use custom variables in destination paths:
 
-After generating files, the extension:
+```json
+"destination": "{{= data.componentPath }}/{{= data.kebabName }}.{{= data.extension }}"
+```
 
-1. Shows a success message with the number of created files
-2. Opens the first created file automatically
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `codeTemplateHub.createFromTemplate` | Create Files from Template |
+| `codeTemplateHub.refreshTemplates` | Refresh Templates |
+| `codeTemplateHub.showDiagnostics` | Show Template Diagnostics |
+| `codeTemplateHub.configureAuthorInfo` | Configure Author Information |
+
+<!-- IMAGE: Extension commands in the Command Palette -->
+
+## Troubleshooting
+
+### Diagnostics
+
+If you're experiencing issues, use the **Code Template Hub: Show Template Diagnostics** command to view:
+
+- Repository status and errors
+- Available templates
+- Warning and error messages
+
+<!-- IMAGE: Diagnostics panel showing template repository information -->
+
+### Common Issues and Solutions
+
+| Issue | Solution |
+|-------|----------|
+| Templates not appearing | Check repository configuration and run "Refresh Templates" |
+| Authentication errors | Verify token or SSH keys for private repositories |
+| Invalid template definition | Ensure templates.json structure is correct and all required fields are present |
+| Custom variable errors | Check for syntax errors in variable expressions or scripts |
 
 ## Best Practices
 
-### Organizing Templates
+### Organization & Structure
 
 - Group related templates under meaningful categories
-- Use descriptive names and detailed descriptions
-- Include appropriate icons for visual recognition
+- Use project-level settings for team-wide consistency
+- Keep templates focused on specific use cases
+- Document templates and parameters clearly
 
-### Template Design
+### Variables & Customization
 
-- Keep templates modular and focused on specific use cases
-- Use parameters for customization points
-- Include good documentation comments in generated files
-- Use conditional sections for optional features
+- Use inline variables for simple transformations
+- Use script-based variables for complex logic
+- Add descriptive comments to script files
+- Use the provided utility functions where possible
+
+<!-- IMAGE: Before/After showing how templates can improve code consistency -->

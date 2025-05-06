@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Background circle with balanced gradient -->
+  <circle cx="64" cy="64" r="60" fill="url(#angularGradient)" />
+
+  <!-- Define the gradient with a better red-to-violet balance -->
+  <defs>
+    <linearGradient id="angularGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DD0031" />      <!-- True red (added back) -->
+      <stop offset="30%" stop-color="#E23237" />     <!-- Red-pink -->
+      <stop offset="60%" stop-color="#C026D3" />     <!-- Pink-purple -->
+      <stop offset="100%" stop-color="#9333EA" />    <!-- Violet -->
+    </linearGradient>
+  </defs>
+
+  <!-- Centered template icon (minimalist) -->
+  <path d="M40,34 h32 l16,16 v44 h-48 z" fill="#FFFFFF" />
+  <path d="M72,34 v16 h16" fill="rgba(0,0,0,0.15)" />
+
+  <!-- Git branch icon (super simplified) -->
+  <circle cx="60" cy="80" r="4" fill="#A855F7" />
+  <circle cx="76" cy="64" r="4" fill="#A855F7" />
+  <circle cx="60" cy="48" r="4" fill="#A855F7" />
+
+  <!-- Branch connections -->
+  <line x1="60" y1="48" x2="76" y2="64" stroke="#A855F7" stroke-width="2.5" />
+  <line x1="76" y1="64" x2="60" y2="80" stroke="#A855F7" stroke-width="2.5" />
+
+  <!-- Template lines -->
+  <line x1="48" y1="56" x2="68" y2="56" stroke="#A855F7" stroke-width="2" />
+  <line x1="48" y1="64" x2="68" y2="64" stroke="#A855F7" stroke-width="2" />
+  <line x1="48" y1="72" x2="60" y2="72" stroke="#A855F7" stroke-width="2" />
+</svg>

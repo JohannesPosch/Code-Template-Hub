@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Dark background -->
+  <rect x="0" y="0" width="128" height="128" rx="16" fill="#1A1A1A" />
+
+  <!-- Define the red-to-violet gradient for strokes -->
+  <defs>
+    <linearGradient id="techGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DD0031" />      <!-- Red -->
+      <stop offset="30%" stop-color="#E23237" />     <!-- Red-pink -->
+      <stop offset="60%" stop-color="#C026D3" />     <!-- Pink-purple -->
+      <stop offset="100%" stop-color="#9333EA" />    <!-- Violet -->
+    </linearGradient>
+
+    <!-- Individual gradients for each side -->
+    <linearGradient id="topGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#DD0031" />
+      <stop offset="100%" stop-color="#9333EA" />
+    </linearGradient>
+
+    <linearGradient id="bottomGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#DD0031" />
+      <stop offset="100%" stop-color="#9333EA" />
+    </linearGradient>
+
+    <linearGradient id="leftGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#DD0031" />
+      <stop offset="100%" stop-color="#9333EA" />
+    </linearGradient>
+
+    <linearGradient id="rightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#DD0031" />
+      <stop offset="100%" stop-color="#9333EA" />
+    </linearGradient>
+  </defs>
+
+  <!-- Pins as continuous elements on each side (BEHIND the IC outline) -->
+  <!-- Top pins as a single element -->
+  <path d="M40,32 v-8 M48,32 v-8 M56,32 v-8 M64,32 v-8 M72,32 v-8 M80,32 v-8 M88,32 v-8"
+        stroke="url(#topGradient)" stroke-width="3" fill="none" />
+
+  <!-- Bottom pins as a single element -->
+  <path d="M40,96 v8 M48,96 v8 M56,96 v8 M64,96 v8 M72,96 v8 M80,96 v8 M88,96 v8"
+        stroke="url(#bottomGradient)" stroke-width="3" fill="none" />
+
+  <!-- Left pins as a single element -->
+  <path d="M32,40 h-8 M32,48 h-8 M32,56 h-8 M32,64 h-8 M32,72 h-8 M32,80 h-8 M32,88 h-8"
+        stroke="url(#leftGradient)" stroke-width="3" fill="none" />
+
+  <!-- Right pins as a single element -->
+  <path d="M96,40 h8 M96,48 h8 M96,56 h8 M96,64 h8 M96,72 h8 M96,80 h8 M96,88 h8"
+        stroke="url(#rightGradient)" stroke-width="3" fill="none" />
+
+  <!-- IC outline over the pins -->
+  <rect x="32" y="32" width="64" height="64" rx="4" fill="none" stroke="url(#techGradient)" stroke-width="4" />
+
+  <!-- Code brackets (software development) in center with gradient -->
+  <path d="M48,50 l-8,14 l8,14" stroke="url(#techGradient)" stroke-width="4" fill="none" />
+  <path d="M80,50 l8,14 l-8,14" stroke="url(#techGradient)" stroke-width="4" fill="none" />
+</svg>

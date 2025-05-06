@@ -2,58 +2,66 @@
 	"name": "codeTemplateHub",
 	"displayName": "Code Template Hub",
 	"description": "Create files from git-based templates using dot.js templating. Store templates in repositories, manage them in a tree view, and generate files with powerful templating features. Supports version-controlled templates with dynamic content, parameter inputs, and author information for team collaboration.",
-	"version": "0.1.0",
-	"icon": "icon.png",
+	"version": "0.2.0",
+	"icon": "media/icon.png",
 	"publisher": "JohnnyP",
-	"repository":
-	{
+	"repository": {
 		"type": "git",
-		"url": "https://github.com/Jo,hannesPosch/Code-Template-Hub.git"
+		"url": "https://github.com/JohannesPosch/Code-Template-Hub"
 	},
 	"engines": {
 		"vscode": "^1.99.0"
 	},
+	"keywords": [
+		"code templates",
+		"template manager",
+		"snippets",
+		"project templates",
+		"code generation",
+		"boilerplate",
+		"developer tools",
+		"VS Code extension",
+		"productivity",
+		"file templates",
+		"template hub"
+	],
 	"categories": [
 		"Snippets",
 		"Other",
 		"Programming Languages"
 	],
 	"activationEvents": [
-		"onStartupFinished",
-		"onCommand:codeTemplateHub.createFromTemplate",
-		"onCommand:codeTemplateHub.refreshTemplates",
-		"onCommand:codeTemplateHub.showDiagnostics",
-		"onCommand:codeTemplateHub.configureAuthorInfo"
+		"onStartupFinished"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "codeTemplateHub.createFromTemplate",
-				"title": "Create Files from Template",
-				"category": "Template Hub"
+				"title": "New from Template ...",
+				"category": "Code Template Hub"
 			},
 			{
 				"command": "codeTemplateHub.refreshTemplates",
 				"title": "Refresh Templates",
-				"category": "Template Hub"
+				"category": "Code Template Hub"
 			},
 			{
 				"command": "codeTemplateHub.showDiagnostics",
 				"title": "Show Template Diagnostics",
-				"category": "Template Hub"
+				"category": "Code Template Hub"
 			},
 			{
 				"command": "codeTemplateHub.configureAuthorInfo",
 				"title": "Configure Author Information",
-				"category": "Template Hub"
+				"category": "Code Template Hub"
 			}
 		],
 		"menus": {
 			"explorer/context": [
 				{
 					"command": "codeTemplateHub.createFromTemplate",
-					"group": "templateHub@1"
+					"group": "navigation"
 				}
 			],
 			"editor/context": [
@@ -116,7 +124,7 @@
 					"default": [
 						{
 							"url": "https://github.com/JohannesPosch/templates.git",
-							"name": "Code Template Hub"
+							"name": "Default"
 						}
 					],
 					"description": "List of git repositories containing templates"
@@ -135,6 +143,10 @@
 					"type": "string",
 					"default": "John@doe.com",
 					"description": "Your email for use in templates"
+				},
+				"codeTemplateHub.organization.name": {
+					"type": "string",
+					"description": "The name of the organization that you are developing for, for use in templates."
 				}
 			}
 		},
