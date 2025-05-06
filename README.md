@@ -152,6 +152,7 @@ The `templates.json` file defines all available templates:
 
 ```json
 {
+  "$schema": "https://github.com/JohannesPosch/Code-Template-Hub/raw/refs/heads/master/templates-file-schema.json",
   "templates": [
     {
       "name": "Component Template",
