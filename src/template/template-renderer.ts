@@ -193,7 +193,11 @@ export class TemplateRenderer {
 	 * Collect parameter values from user input
 	 */
 	public async collectParameters(
-		template: Template
+		template: Template,
+		context: {
+			workspaceDir?: string;  // Current workspace directory if any
+			executionDir: string;   // Directory where command was executed
+		}
 	): Promise<TemplateRenderParams | undefined> {
 		if (!template.parameters || template.parameters.length === 0) {
 			return {};
@@ -203,7 +207,12 @@ export class TemplateRenderer {
 
 		// Process parameters in order
 		for (const param of template.parameters) {
-			const value = await this.promptParameter(param);
+			const value = await this.promptParameter(param, params, {
+				utils: this.createUtilitiesObject(),
+				workspaceDir: context.workspaceDir,
+				executionDir: context.executionDir,
+				templateDir: template.directory!
+			});
 
 			// User cancelled input
 			if (value === undefined) {
@@ -219,7 +228,34 @@ export class TemplateRenderer {
 	/**
 	 * Prompt user for a parameter value
 	 */
-	private async promptParameter(param: TemplateParameter): Promise<any | undefined> {
+	private async promptParameter(
+		param: TemplateParameter,
+		params: TemplateRenderParams,
+		context: {
+			utils: any; // Utilities object for parameter processing;
+			workspaceDir?: string;  // Current workspace directory if any
+			executionDir: string;   // Directory where command was executed
+			templateDir: string;   // Directory where the template is located
+		}
+	): Promise<any | undefined> {
+
+		// Check if the parameter is visible based on the provided condition
+		if (param.visibleIf) {
+
+			// Create a function that evaluates the expression
+			const condition = new Function(
+				'data', 'context',
+				`return (${param.visibleIf});`
+			);
+
+			// Execute the function
+			const isVisible = condition(params, context);
+
+			if (!isVisible) {
+				return param.default;
+			}
+		}
+
 		switch (param.type) {
 			case 'string':
 				return this.promptStringParameter(param);
@@ -310,8 +346,8 @@ export class TemplateRenderer {
 		template: Template,
 		params: TemplateRenderParams,
 		context: {
-		workspaceDir?: string;  // Current workspace directory if any
-		executionDir: string;   // Directory where command was executed
+			workspaceDir?: string;  // Current workspace directory if any
+			executionDir: string;   // Directory where command was executed
 		}
 	): Promise<TemplateRenderParams> {
 		// Start with base parameters

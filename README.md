@@ -249,6 +249,7 @@ The `templates.json` file defines all available templates:
 | `pattern` | Validation regex pattern (for string type) | No |
 | `patternErrorMessage` | Error message for invalid pattern | No |
 | `options` | Options for selection type (array of {value, label} objects) | For selection type |
+| `visibleIf` | Javascript expression to evaluate whether the parameter is shown (default: true) | No |
 
 #### Custom Variable Properties
 
@@ -259,7 +260,7 @@ The `templates.json` file defines all available templates:
 | `value` | JavaScript expression or dot.js template | Yes |
 | `type` | Type of evaluation: 'js' or 'dotjs' (default: 'js') | No |
 
-## Variable System
+## Template Generation
 
 ![Template Processing Workflow](media/flow.png)
 
@@ -273,7 +274,107 @@ Code Template Hub processes templates through a series of steps, with variables 
 4. **Template Processing**: Template files are processed with all available variables
 5. **File Generation**: Final files are created at the specified location
 
-At each step, variables defined in previous steps are available. For example, script variables can access user parameters, and inline variables can access both parameters and script variables.
+At each step, variables defined in previous steps are available. For example, parameters can access previous parameters, script variables can access user parameters, and inline variables can access both parameters and script variables.
+
+### Parameters
+
+Parameters allow users to provide input during template generation, enabling dynamic customization of the generated files. Each parameter is defined in the `parameters` array of the template configuration. Here's how they work:
+
+1. **User Input**: When creating files from a template, the user is prompted to provide values for the parameters.
+2. **Validation**: Parameters can include validation rules, such as required fields or regex patterns.
+3. **Dynamic Behavior**: Parameters can influence file content, file paths, or even visibility of other parameters.
+
+#### Parameter Types
+
+Parameters allow users to customize the generated files dynamically during template generation. Each parameter is defined in the `parameters` array of the template configuration and can have the following types:
+
+1. **String:** Accepts textual input from the user. It can include validation rules such as regex patterns to enforce specific formats (e.g., PascalCase for component names).
+2. **Boolean:** Represents a true/false value. Useful for toggling optional features like including test files.
+3. **Selection:** Provides a predefined list of options for the user to choose from. Each option includes a value and a label for better clarity.
+
+#### Conditional Visibility
+The `visibleIf` property allows parameters to be conditionally displayed based on the evaluation of a JavaScript expression. This enables dynamic forms where the visibility of a parameter depends on the value of other parameters.
+
+- **data**: Represents the current state of all parameters. You can access any parameter's value using `data.<parameterName>`.
+- **context**: Provides additional contextual information, such as metadata or environment-specific details, that can be used to make decisions.
+
+> **Important Note**: If a `visibleIf` condition is defined and evaluates to anything other than `true`, it is necessary to define a default value for the parameter. This ensures that the parameter has a valid value even when it is not visible. Avoid leaving the default value as `undefined`.
+
+#### Example Parameter Definitions
+
+```json
+{
+	"name": "includeTests",
+	"displayName": "Include Tests",
+	"description": "Add test files",
+	"type": "boolean",
+	"default": false
+},
+{
+	"name": "testFramework",
+	"displayName": "Test Framework",
+	"description": "Choose the test framework",
+	"type": "selection",
+	"default": "jest",
+	"options": [
+		{"value": "jest", "label": "Jest"},
+		{"value": "mocha", "label": "Mocha"}
+	],
+	"visibleIf": "data.includeTests === true"
+}
+```
+
+In this example, the `testFramework` parameter is only visible if `includeTests` is set to `true`.
+
+
+```json
+"parameters": [
+	{
+		"name": "name",
+		"displayName": "Component Name",
+		"description": "Name of the component",
+		"type": "string",
+		"required": true,
+		"pattern": "^[A-Z][a-zA-Z0-9]*$",
+		"patternErrorMessage": "Component name must be in PascalCase"
+	},
+	{
+		"name": "includeTests",
+		"displayName": "Include Tests",
+		"description": "Add test files",
+		"type": "boolean",
+		"default": false
+	},
+	{
+		"name": "styleType",
+		"displayName": "Styling Method",
+		"description": "Name of the component",
+		"type": "string",
+		"required": true,
+		"pattern": "^[A-Z][a-zA-Z0-9]*$",
+		"patternErrorMessage": "Component name must be in PascalCase"
+	},
+	{
+		"name": "includeTests",
+		"displayName": "Include Tests",
+		"description": "Add test files",
+		"type": "boolean",
+		"default": false
+	},
+	{
+		"name": "styleType",
+		"displayName": "Styling Method",
+		"description": "Choose styling approach",
+		"type": "selection",
+		"default": "css",
+		"options": [
+			{"value": "css", "label": "CSS Modules"},
+			{"value": "styled", "label": "Styled Components"},
+			{"value": "tailwind", "label": "Tailwind CSS"}
+		]
+	}
+]
+```
 
 ### Custom Variables
 

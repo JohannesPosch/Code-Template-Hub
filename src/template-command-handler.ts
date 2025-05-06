@@ -118,7 +118,12 @@ export class TemplateCommandHandler {
 			}
 
 			// Collect parameters
-			const params = await this.templateRenderer.collectParameters(selectedTemplate);
+			const params = await this.templateRenderer.collectParameters(
+				selectedTemplate,
+				{
+					workspaceDir: (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) ? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined,
+					executionDir: targetDir
+				});
 			if (!params) {
 				return; // User cancelled
 			}
