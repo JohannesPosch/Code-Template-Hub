@@ -99,6 +99,10 @@ export class TemplateRenderer {
 
 			// Process destination path with parameters
 			const destPath = this.processPath(file.destination, enhancedParams);
+			if(destPath === undefined || !destPath.trim()){
+				throw new Error(`Error destination path is empty`);
+			}
+
 			const fullDestPath = path.join(targetDir, destPath);
 
 			// Ensure parent directory exists
@@ -203,7 +207,7 @@ export class TemplateRenderer {
 			return {};
 		}
 
-		const params: TemplateRenderParams = {};
+		let params: TemplateRenderParams = {};
 
 		// Process parameters in order
 		for (const param of template.parameters) {
@@ -219,7 +223,10 @@ export class TemplateRenderer {
 				return undefined;
 			}
 
-			params[param.name] = value;
+			params = {
+				...params,
+				...value
+			};
 		}
 
 		return params;
@@ -266,7 +273,7 @@ export class TemplateRenderer {
 			case 'selection':
 				return this.promptSelectionParameter(param);
 
-			case 'selectionMany':
+			case 'select_many':
 				return this.promptSelectionManyParameter(param);
 
 			default:
@@ -299,7 +306,7 @@ export class TemplateRenderer {
 		};
 
 		return {
-			[param.name]: vscode.window.showInputBox(options)
+			[param.name]: await vscode.window.showInputBox(options)
 		};
 	}
 
@@ -369,16 +376,16 @@ export class TemplateRenderer {
 
 		const resultValues: TemplateRenderParams = {};
 		for (const opt of unselectedOptions) {
-			resultValues[opt.label] = false;
+			resultValues[opt.value] = false;
 		}
 
 		if (result) {
 			for (const res of result) {
-				resultValues[res.label] = true;
+				resultValues[res.value] = true;
 			}
 		}
 
-		return resultValues;
+		return { [param.name]: resultValues };
 	}
 
 	/**
@@ -544,7 +551,7 @@ export class TemplateRenderer {
 
 			// Workspace utilities
 			getWorkspaceFiles: async (pattern: string, workspaceDir: string) => {
-				if (!workspaceDir) return [];
+				if (!workspaceDir) { return []; }
 				// This could use VS Code API or glob pattern to find files
 				// For example: glob.sync(pattern, { cwd: workspaceDir })
 				return []; // Placeholder

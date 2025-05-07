@@ -222,7 +222,17 @@ export class TemplateManager
 				}
 
 				// Check selection options
-				if (param.type === 'selectionMany' && (!param.options || !Array.isArray(param.options) || param.options.length === 0)) {
+				if (param.type === 'select_many' && (!param.options || !Array.isArray(param.options) || param.options.length === 0)) {
+					return false;
+				}
+
+				// Check if the default value is provided if visibleIf is defined
+				if((param.visibleIf !== undefined) && (param.default === undefined)) {
+					this.addDiagnostic(
+						repo.id,
+						`Template "${template.name}", parameter "${param.name}" has visibleIf defined but no default parameter`,
+						'warning'
+					);
 					return false;
 				}
 

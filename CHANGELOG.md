@@ -19,3 +19,14 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### New Features
 
 - **`visibleIf` Condition Support**: Introduced the `visibleIf` property for template fields. This allows fields to be conditionally displayed based on the evaluation of a JavaScript expression, providing dynamic control over template customization.
+
+
+## 0.4.0
+
+### New Features
+
+- **Select Many Support**: Added support for multi-selection fields, allowing users to choose multiple options from a list.
+
+### Improvements
+
+- **Validation for `visibleIf` Fields**: Added validation to ensure fields with `visibleIf` conditions also have a default value defined, improving the user experience for conditional fields.

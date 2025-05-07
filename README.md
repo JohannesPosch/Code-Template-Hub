@@ -244,7 +244,7 @@ The `templates.json` file defines all available templates:
 | `name` | Parameter name (for use in templates) | Yes |
 | `displayName` | Display name shown in UI | Yes |
 | `description` | Description of the parameter | No |
-| `type` | Type of parameter: 'string', 'boolean' or 'selection' | Yes |
+| `type` | Type of parameter: 'string', 'boolean', 'selection' or 'select_many' | Yes |
 | `default` | Default value | No |
 | `required` | Whether the parameter is required (for string type) | No |
 | `pattern` | Validation regex pattern (for string type) | No |
@@ -289,9 +289,60 @@ Parameters allow users to provide input during template generation, enabling dyn
 
 Parameters allow users to customize the generated files dynamically during template generation. Each parameter is defined in the `parameters` array of the template configuration and can have the following types:
 
-1. **String:** Accepts textual input from the user. It can include validation rules such as regex patterns to enforce specific formats (e.g., PascalCase for component names).
-2. **Boolean:** Represents a true/false value. Useful for toggling optional features like including test files.
-3. **Selection:** Provides a predefined list of options for the user to choose from. Each option includes a value and a label for better clarity.
+##### String:
+Accepts textual input from the user. It can include validation rules such as regex patterns to enforce specific formats (e.g., PascalCase for component names).
+##### Boolean:
+Represents a true/false value. Useful for toggling optional features like including test files.
+##### Selection:
+Provides a predefined list of options for the user to choose from. Each option includes a value and a label for better clarity.
+
+```json
+{
+	"name": "framework",
+	"displayName": "Frontend Framework",
+	"description": "Choose your preferred JavaScript framework",
+	"type": "selection",
+	"default": "react",
+	"options": [
+		{"value": "react", "label": "React"},
+		{"value": "vue", "label": "Vue.js"},
+		{"value": "angular", "label": "Angular"},
+		{"value": "svelte", "label": "Svelte"}
+	]
+}
+```
+
+In templates, you can access the selected value with `data.framework`, which will contain the value of the selected option (e.g., "react").
+
+##### Select Many:
+Provides a list of checkboxes for multiple selections. Unlike the selection type, each option value becomes a boolean property in the data object. This makes it easy to use condition checks in templates.
+
+```json
+{
+	"name": "features",
+	"displayName": "Select Features",
+	"description": "Choose the features to include",
+	"type": "select_many",
+	"options": [
+		{ "value": "auth", "label": "Authentication" },
+		{ "value": "db", "label": "Database Integration" },
+		{ "value": "api", "label": "API Integration" }
+	]
+}
+```
+In templates, you can access the selected value with `data.features.xxx`, which will contain the values of the options:
+
+```javascript
+{{? data.features.auth }}
+// Authentication code
+import { Auth } from './auth';
+{{?}}
+
+{{? data.features.api }}
+// API integration code
+import { API } from './api';
+{{?}}
+```
 
 #### Conditional Visibility
 The `visibleIf` property allows parameters to be conditionally displayed based on the evaluation of a JavaScript expression. This enables dynamic forms where the visibility of a parameter depends on the value of other parameters.
