@@ -13,7 +13,7 @@ export interface TemplateParameter
 	description?: string;
 
 	/** Type of parameter (string, boolean, selection) */
-	type: 'string' | 'boolean' | 'selection';
+	type: 'string' | 'boolean' | 'selection' | 'select_many';
 
 	/** Default value */
 	default?: string | boolean;
