@@ -237,7 +237,7 @@ export class TemplateRenderer {
 			executionDir: string;   // Directory where command was executed
 			templateDir: string;   // Directory where the template is located
 		}
-	): Promise<any | undefined> {
+	): Promise<TemplateRenderParams | undefined> {
 
 		// Check if the parameter is visible based on the provided condition
 		if (param.visibleIf) {
@@ -252,7 +252,7 @@ export class TemplateRenderer {
 			const isVisible = condition(params, context);
 
 			if (!isVisible) {
-				return param.default;
+				return [{ key: param.name, value: param.default }];
 			}
 		}
 
@@ -266,6 +266,9 @@ export class TemplateRenderer {
 			case 'selection':
 				return this.promptSelectionParameter(param);
 
+			case 'selectionMany':
+				return this.promptSelectionManyParameter(param);
+
 			default:
 				throw new Error(`Unsupported parameter type: ${(param as any).type}`);
 		}
@@ -274,7 +277,7 @@ export class TemplateRenderer {
 	/**
 	 * Prompt for string parameter
 	 */
-	private async promptStringParameter(param: TemplateParameter): Promise<string | undefined> {
+	private async promptStringParameter(param: TemplateParameter): Promise<TemplateRenderParams | undefined> {
 		const options: vscode.InputBoxOptions = {
 			title: `Enter ${param.displayName}`,
 			prompt: param.description,
@@ -295,13 +298,15 @@ export class TemplateRenderer {
 			}
 		};
 
-		return vscode.window.showInputBox(options);
+		return {
+			[param.name]: vscode.window.showInputBox(options)
+		};
 	}
 
 	/**
 	 * Prompt for boolean parameter
 	 */
-	private async promptBooleanParameter(param: TemplateParameter): Promise<boolean> {
+	private async promptBooleanParameter(param: TemplateParameter): Promise<TemplateRenderParams> {
 		const result = await vscode.window.showQuickPick(
 			[
 				{ label: 'Yes', value: true },
@@ -314,13 +319,15 @@ export class TemplateRenderer {
 			}
 		);
 
-		return result ? result.value : (param.default as boolean) || false;
+		return {
+			[param.name]: result ? result.value : (param.default as boolean) || false
+		};
 	}
 
 	/**
 	 * Prompt for selection parameter
 	 */
-	private async promptSelectionParameter(param: TemplateParameter): Promise<string | undefined> {
+	private async promptSelectionParameter(param: TemplateParameter): Promise<TemplateRenderParams | undefined> {
 		if (!param.options || param.options.length === 0) {
 			throw new Error(`Selection parameter ${param.name} has no options`);
 		}
@@ -336,7 +343,42 @@ export class TemplateRenderer {
 			canPickMany: false
 		});
 
-		return result ? result.value : (param.default as string);
+		return {
+			[param.name]: result ? result.value : (param.default as string)
+		};
+	}
+
+	private async promptSelectionManyParameter(param: TemplateParameter): Promise<TemplateRenderParams> {
+		if(!param.options || param.options.length === 0) {
+			throw new Error(`Selection parameter ${param.name} has no options`);
+		}
+
+		const items = param.options.map(opt => ({
+			label: opt.label,
+			value: opt.value
+		}));
+
+		const result = await vscode.window.showQuickPick(items, {
+			title: param.displayName,
+			placeHolder: param.description,
+			canPickMany: true
+		});
+
+		// If no selection was made, return the values with their default values
+		const unselectedOptions = param.options.filter(opt => !result?.some(res => res.value === opt.value));
+
+		const resultValues: TemplateRenderParams = {};
+		for (const opt of unselectedOptions) {
+			resultValues[opt.label] = false;
+		}
+
+		if (result) {
+			for (const res of result) {
+				resultValues[res.label] = true;
+			}
+		}
+
+		return resultValues;
 	}
 
 	/**

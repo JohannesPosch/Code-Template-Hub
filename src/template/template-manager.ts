@@ -221,6 +221,11 @@ export class TemplateManager
 					return false;
 				}
 
+				// Check selection options
+				if (param.type === 'selectionMany' && (!param.options || !Array.isArray(param.options) || param.options.length === 0)) {
+					return false;
+				}
+
 				// Check pattern
 				if (param.pattern) {
 					try {

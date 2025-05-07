@@ -107,7 +107,7 @@
 				"type": {
 					"type": "string",
 					"description": "Type of parameter",
-					"enum": ["string", "boolean", "selection"]
+					"enum": ["string", "boolean", "selection", "selectionMany"]
 				},
 				"required": {
 					"type": "boolean",
