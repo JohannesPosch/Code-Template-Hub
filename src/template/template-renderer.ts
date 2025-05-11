@@ -305,15 +305,22 @@ export class TemplateRenderer {
 			}
 		};
 
+		const result = await vscode.window.showInputBox(options);
+
+		// Check if the user cancelled the input
+		if(result === undefined){
+			return undefined;
+		}
+
 		return {
-			[param.name]: await vscode.window.showInputBox(options)
+			[param.name]: result.trim()
 		};
 	}
 
 	/**
 	 * Prompt for boolean parameter
 	 */
-	private async promptBooleanParameter(param: TemplateParameter): Promise<TemplateRenderParams> {
+	private async promptBooleanParameter(param: TemplateParameter): Promise<TemplateRenderParams | undefined> {
 		const result = await vscode.window.showQuickPick(
 			[
 				{ label: 'Yes', value: true },
@@ -322,9 +329,15 @@ export class TemplateRenderer {
 			{
 				title: param.displayName,
 				placeHolder: param.description,
-				canPickMany: false
+				canPickMany: false,
+
 			}
 		);
+
+		// Check if the user cancelled the input
+		if(result === undefined){
+			return undefined;
+		}
 
 		return {
 			[param.name]: result ? result.value : (param.default as boolean) || false
@@ -350,12 +363,17 @@ export class TemplateRenderer {
 			canPickMany: false
 		});
 
+		// Check if the user cancelled the input
+		if(result === undefined){
+			return undefined;
+		}
+
 		return {
 			[param.name]: result ? result.value : (param.default as string)
 		};
 	}
 
-	private async promptSelectionManyParameter(param: TemplateParameter): Promise<TemplateRenderParams> {
+	private async promptSelectionManyParameter(param: TemplateParameter): Promise<TemplateRenderParams | undefined> {
 		if(!param.options || param.options.length === 0) {
 			throw new Error(`Selection parameter ${param.name} has no options`);
 		}
@@ -370,6 +388,11 @@ export class TemplateRenderer {
 			placeHolder: param.description,
 			canPickMany: true
 		});
+
+		// Check if the user cancelled the input
+		if(result === undefined){
+			return undefined;
+		}
 
 		// If no selection was made, return the values with their default values
 		const unselectedOptions = param.options.filter(opt => !result?.some(res => res.value === opt.value));
