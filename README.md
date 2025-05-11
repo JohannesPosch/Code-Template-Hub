@@ -465,12 +465,13 @@ Create a script that exports the specified function (or "generateVariables" by d
 ```javascript
 /**
  * Generate variables for templates
- * @param {Object} params - User parameters
+ * @param {Object} data - User parameters
+ * @param {Object} utils - Utilities functions
  * @param {Object} context - Additional context
  * @returns {Object} - Custom variables
  */
-function generateVariables(params, context) {
-  const { name } = params;
+function generateVariables(data, utils, context) {
+  const { name } = data;
   const { utils } = context;
 
   return {
@@ -507,8 +508,8 @@ The function in the variables script should implement this interface:
  */
 function generateVariables(
   params: Record<string, any>,
+  utils: UtilityFunctions;
   context: {
-    utils: UtilityFunctions;
     workspaceDir?: string;
     executionDir: string;
     templateDir: string;
@@ -531,7 +532,7 @@ The function:
 | **Author Info** | `data.author.firstName`<br>`data.author.lastName`<br>`data.author.email`<br>`data.author.fullName` | `{{= data.author.firstName }}` | `params.author.firstName` |
 | **Organization Info** | `data.organization.name` | `{{= data.organization.name }}` | `params.organization.name` |
 | **Date** | `data.date` | `{{= data.date }}` | `params.date` |
-| **Utilities** | `utils.functionName()` | N/A | `context.utils.functionName()` |
+| **Utilities** | `utils.functionName()` | N/A | `utils.functionName()` |
 | **Context Info** | `context.workspaceDir`<br>`context.executionDir`<br>`context.templateDir` | N/A | `context.workspaceDir`<br>`context.executionDir`<br>`context.templateDir` |
 
 #### Context Information Reference

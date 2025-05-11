@@ -434,8 +434,8 @@ export class TemplateRenderer {
 			let scriptVariables;
 
 			try	{
-				scriptVariables = await template.variablesFn(params, {
-					utils,
+				scriptVariables = await template.variablesFn(params, utils,
+					{
 					workspaceDir: context.workspaceDir,
 					executionDir: context.executionDir,
 					templateDir: template.directory
@@ -485,14 +485,15 @@ export class TemplateRenderer {
 
 						// Create a function that evaluates the expression
 						const evalFn = new Function(
-							'data', 'context',
+							'data', 'utils', 'context',
 							`return (${variable.value});`
 						);
 
 						// Execute the function
 						value = evalFn(
-							enhancedParams, {
-								utils,
+							enhancedParams,
+							utils,
+							{
 								workspaceDir: context.workspaceDir,
 								executionDir: context.executionDir,
 								templateDir: template.directory
@@ -522,23 +523,65 @@ export class TemplateRenderer {
 	private createUtilitiesObject() {
 		return {
 			// String transformations
-			toCamelCase: (str: string) => str.replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase()),
-			toPascalCase: (str: string) => {
-				return str
-				.replace(/^([a-z])|-([a-z])/g, (g) => g.replace(/^-/, '').toUpperCase())
-				.replace(/[-_]([a-z])/g, (g) => g[1].toUpperCase());
+			toCamelCase: (input: string) => {
+				// Return empty string for invalid input
+				if (!input || input.trim() === '') {
+					return '';
+				}
+
+				// First handle PascalCase by converting first character to lowercase
+				let result = input.charAt(0).toLowerCase() + input.slice(1);
+
+				// Single regex to handle kebab-case and snake_case
+				result = result.replace(/[-_]([a-z0-9])/gi, (match, char) => {
+					return char.toUpperCase();
+				});
+
+				return result;
 			},
-			toSnakeCase: (str: string) => {
-				return str
-				.replace(/([A-Z])/g, (g) => '_' + g.toLowerCase())
-				.replace(/^_/, '')
-				.replace(/[-\s]+/g, '_');
+			toPascalCase: (input: string) => {
+				// Return empty string for invalid input
+				if (!input || input.trim() === '') {
+					return '';
+				}
+
+				// First, convert to camelCase by handling hyphens and underscores
+				let camelCase = input.replace(/[-_]([a-z0-9])/gi, (match, char) => {
+					return char.toUpperCase();
+				});
+
+				// Then capitalize the first letter to get PascalCase
+				return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
 			},
-			toKebabCase: (str: string) => {
-				return str
-				.replace(/([A-Z])/g, (g) => '-' + g.toLowerCase())
-				.replace(/^-/, '')
-				.replace(/[_\s]+/g, '-');
+			toSnakeCase: (input: string) => {
+				// Return empty string for invalid input
+				if (!input || input.trim() === '') {
+					return '';
+				}
+
+				// First replace hyphens with underscores (for kebab-case)
+				let result = input.replace(/-/g, '_');
+
+				// Handle camelCase and PascalCase by inserting underscore before capitals
+				result = result.replace(/([a-z0-9])([A-Z])/g, '$1_$2');
+
+				// Convert the entire string to lowercase
+				return result.toLowerCase();
+			},
+			toKebabCase: (input: string) => {
+				// Return empty string for invalid input
+				if (!input || input.trim() === '') {
+					return '';
+				}
+
+				// First replace underscores with hyphens (for snake_case)
+				let result = input.replace(/_/g, '-');
+
+				// Handle camelCase and PascalCase by inserting hyphen before capitals
+				result = result.replace(/([a-z0-9])([A-Z])/g, '$1-$2');
+
+				// Convert the entire string to lowercase
+				return result.toLowerCase();
 			},
 
 			// File path utilities
@@ -570,20 +613,6 @@ export class TemplateRenderer {
 					const r = Math.random() * 16 | 0;
 					return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
 				});
-			},
-
-			// Workspace utilities
-			getWorkspaceFiles: async (pattern: string, workspaceDir: string) => {
-				if (!workspaceDir) { return []; }
-				// This could use VS Code API or glob pattern to find files
-				// For example: glob.sync(pattern, { cwd: workspaceDir })
-				return []; // Placeholder
-			},
-
-			// Content analysis
-			findInFiles: async (pattern: string, workspaceDir: string) => {
-				// Placeholder for file content search functionality
-				return [];
 			}
 		};
 	}

@@ -30,9 +30,20 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Improvements
 
 - **Validation for `visibleIf` Fields**: Added validation to ensure fields with `visibleIf` conditions also have a default value defined, improving the user experience for conditional fields.
+
 ## 0.5.0
 
 ### Bug Fixes
 
 - **Keyword Updates**: Updated keywords to improve discoverability and alignment with the extension's functionality.
 - **File Generation Fix**: Resolved an issue where the extension would incorrectly proceed with file generation from a template when the "Esc" key was pressed. File generation now aborts as expected.
+
+## 0.6.0
+
+### Bug Fixes
+
+- **Utility Functions for Custom Variables**: Fixed issues with utility functions used for custom variable generation, ensuring they work as intended.
+
+### Improvements
+
+- **Streamlined Access to Utility Functions**: Simplified and improved access to utility functions for custom variable generation in JavaScript.
