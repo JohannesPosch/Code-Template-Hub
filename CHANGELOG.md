@@ -47,3 +47,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Improvements
 
 - **Streamlined Access to Utility Functions**: Simplified and improved access to utility functions for custom variable generation in JavaScript.
+
+## 0.6.1
+
+### Bug Fixes
+
+- **Custom Variable Generation Validation**: Fixed a validation issue where the `generateVariables` JavaScript function incorrectly required 2 parameters instead of the correct 3 parameters. ([#5](https://github.com/JohannesPosch/Code-Template-Hub/issues/5))
