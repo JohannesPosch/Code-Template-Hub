@@ -402,7 +402,7 @@ export class TemplateManager
 			}
 
 			// Now check the amount of arguments
-			if(fn.length !== 2)
+			if(fn.length !== 3)
 			{
 				// Error, invalid amount of arguments in the function
 				this.addDiagnostic(
